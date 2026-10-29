@@ -22,7 +22,7 @@ const ENV = findEnv();
 let redis = null;
 if (ENV.url && ENV.token) redis = new Redis({ url: ENV.url, token: ENV.token, automaticDeserialization: false });
 
-const VKEY = 'vf:visitors', ZKEY = 'vf:scores', HKEY = 'vf:meta', MAX_ENTRIES = 5000, ALLOW_ORIGIN = process.env.ALLOW_ORIGIN || '*';
+const GAMEKEY = 'vf:games', VKEY = 'vf:visitors', ZKEY = 'vf:scores', HKEY = 'vf:meta', MAX_ENTRIES = 5000, ALLOW_ORIGIN = process.env.ALLOW_ORIGIN || '*';
 const SECRET = process.env.SCORE_SECRET || crypto.createHash('sha256').update('vf|' + ENV.token).digest('hex');
 const MULT = { easy: 1, medium: 1.25, hard: 1.5, hell: 2 };
 const MAX_DIST_PER_SEC = 135;            // game tops out around 120 units/s on Hell
@@ -53,6 +53,7 @@ async function limited(ip, bucket, max) {
   return n > max;
 }
 function parse(v) { if (v == null) return null; if (typeof v === 'object') return v; try { return JSON.parse(v); } catch (e) { return null; } }
+function rej(res, code, why, b) { console.warn('VectoFly rejected score:', why, JSON.stringify({ d: b && b.diff, s: b && b.score, dist: b && b.dist, pills: b && b.pills, playMs: b && b.playMs })); return send(res, code, { error: why }); }
 const sign = (id, ts, nonce) => crypto.createHmac('sha256', SECRET).update([id, ts, nonce].join('.')).digest('hex').slice(0, 32);
 function safeEq(a, b) { a = Buffer.from(String(a)); b = Buffer.from(String(b)); return a.length === b.length && crypto.timingSafeEqual(a, b); }
 
@@ -67,15 +68,17 @@ module.exports = async function handler(req, res) {
 
     if (req.method === 'GET') {
       if (req.query && req.query.debug) {
-        let ping = 'ok'; try { await redis.ping(); } catch (e) { ping = 'failed: ' + String(e && e.message || e).slice(0, 120); }
-        return send(res, 200, { ok: ping === 'ok', redis: ping, host: ENV.url.replace(/^https:\/\//, '').slice(0, 40) });
+        let ping = 'ok', write = 'ok'; try { await redis.ping(); } catch (e) { ping = 'failed: ' + String(e && e.message || e).slice(0, 120); }
+        try { await redis.set('vf:debug', String(Date.now()), { ex: 60 }); } catch (e) { write = 'failed (token may be read-only): ' + String(e && e.message || e).slice(0, 120); }
+        const stored = +(await redis.zcard(ZKEY).catch(() => -1));
+        return send(res, 200, { ok: ping === 'ok' && write === 'ok', redis: ping, write, scoresStored: stored, host: ENV.url.replace(/^https:\/\//, '').slice(0, 40) });
       }
       const limit = Math.max(1, Math.min(100, +(req.query && req.query.limit) || 50));
       const ids = await redis.zrange(ZKEY, 0, limit - 1, { rev: true });
       const metas = ids.length ? await redis.hmget(HKEY, ...ids) : null;
       const scores = ids.map(id => { const m = parse(metas && metas[id]); return m ? { n: m.n, s: m.s, k: pub(id) } : null; }).filter(Boolean);
-      const visitors = +(await redis.scard(VKEY)) || 0;
-      return send(res, 200, { scores, visitors, at: Date.now() });
+      const visitors = +(await redis.scard(VKEY)) || 0, games = +(await redis.get(GAMEKEY)) || 0;
+      return send(res, 200, { scores, visitors, games, at: Date.now() });
     }
 
     if (req.method !== 'POST') return send(res, 405, { error: 'method' });
@@ -91,14 +94,15 @@ module.exports = async function handler(req, res) {
     if (b.action === 'visit') {
       if (await limited(ip, 'visit', 30)) return send(res, 429, { error: 'slow down' });
       await redis.sadd(VKEY, id);
-      return send(res, 200, { ok: true, visitors: +(await redis.scard(VKEY)) || 0 });
+      return send(res, 200, { ok: true, visitors: +(await redis.scard(VKEY)) || 0, games: +(await redis.get(GAMEKEY)) || 0 });
     }
 
     // ---- step 1: a run ticket, issued when the flight starts ----
     if (b.action === 'start') {
       if (await limited(ip, 'start', 40)) return send(res, 429, { error: 'slow down' });
       const ts = Date.now(), nonce = crypto.randomBytes(8).toString('hex');
-      return send(res, 200, { t: [ts, nonce, sign(id, ts, nonce)].join('.') });
+      const games = await redis.incr(GAMEKEY);          // every flight that starts counts as one game played
+      return send(res, 200, { t: [ts, nonce, sign(id, ts, nonce)].join('.'), games: +games || 0 });
     }
 
     // ---- step 2: submit the finished run ----
@@ -109,23 +113,23 @@ module.exports = async function handler(req, res) {
 
     // ticket must be ours, bound to this player, fresh, and unused
     const parts = String(b.t || '').split('.');
-    if (parts.length !== 3 || !/^\d{10,14}$/.test(parts[0]) || !/^[a-f0-9]{16}$/.test(parts[1])) return send(res, 403, { error: 'ticket' });
+    if (parts.length !== 3 || !/^\d{10,14}$/.test(parts[0]) || !/^[a-f0-9]{16}$/.test(parts[1])) return rej(res, 403, 'ticket', b);
     const ts = +parts[0], nonce = parts[1];
-    if (!safeEq(parts[2], sign(id, ts, nonce))) return send(res, 403, { error: 'ticket' });
+    if (!safeEq(parts[2], sign(id, ts, nonce))) return rej(res, 403, 'ticket', b);
     const elapsed = Date.now() - ts;
-    if (elapsed < 0 || elapsed > 3 * 3600e3) return send(res, 403, { error: 'expired' });
+    if (elapsed < 0 || elapsed > 3 * 3600e3) return rej(res, 403, 'expired', b);
     const fresh = await redis.set('vf:used:' + nonce, '1', { nx: true, ex: 4 * 3600 });
-    if (!fresh) return send(res, 403, { error: 'replay' });
+    if (!fresh) return rej(res, 403, 'replay', b);
 
     // physics-based plausibility: what the game can actually produce in that much real time
     const sec = elapsed / 1000;
-    if (dist > sec * MAX_DIST_PER_SEC + 60) return send(res, 422, { error: 'too fast' });
-    if (playMs > elapsed + 3000) return send(res, 422, { error: 'clock' });
-    if (dist > (playMs / 1000) * MAX_DIST_PER_SEC + 60) return send(res, 422, { error: 'too fast' });
-    if (Math.abs(level - (1 + Math.floor(dist / 1000))) > 1) return send(res, 422, { error: 'level' });
-    if (pills > dist / 85 * 10 + 10) return send(res, 422, { error: 'pills' });
-    if (Math.abs(score - Math.floor((dist + pills * 5) * mult)) > 3) return send(res, 422, { error: 'score' });
-    if (dist > 5e6 || score > 1e7) return send(res, 422, { error: 'implausible' });
+    if (dist > sec * MAX_DIST_PER_SEC + 60) return rej(res, 422, 'too fast', b);
+    if (playMs > elapsed + 3000) return rej(res, 422, 'clock', b);
+    if (dist > (playMs / 1000) * MAX_DIST_PER_SEC + 60) return rej(res, 422, 'too fast', b);
+    if (Math.abs(level - (1 + Math.floor(dist / 1000))) > 1) return rej(res, 422, 'level', b);
+    if (pills > dist / 85 * 10 + 10) return rej(res, 422, 'pills', b);
+    if (Math.abs(score - Math.floor((dist + pills * 5) * mult)) > 3) return rej(res, 422, 'score', b);
+    if (dist > 5e6 || score > 1e7) return rej(res, 422, 'implausible', b);
 
     const name = cleanName(b.name), prevScore = await redis.zscore(ZKEY, id), prev = prevScore == null ? null : +prevScore;
     if (prev === null || score > prev) {

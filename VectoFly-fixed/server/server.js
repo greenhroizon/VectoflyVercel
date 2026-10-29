@@ -21,8 +21,10 @@ let scores = {};
 try { scores = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8')); } catch (e) { scores = {}; }
 const VFILE = path.join(path.dirname(DATA_FILE), 'visitors.json');
 let visitors = new Set(); try { visitors = new Set(JSON.parse(fs.readFileSync(VFILE, 'utf8'))); } catch (e) {}
+const GFILE = path.join(path.dirname(DATA_FILE), 'games.txt');
+let games = 0; try { games = parseInt(fs.readFileSync(GFILE, 'utf8'), 10) || 0; } catch (e) {}
 let vDirty = false;
-setInterval(() => { if (!vDirty) return; vDirty = false; try { fs.mkdirSync(path.dirname(VFILE), { recursive: true }); fs.writeFileSync(VFILE, JSON.stringify([...visitors])); } catch (e) {} }, 5000).unref();
+setInterval(() => { if (!vDirty) return; vDirty = false; try { fs.mkdirSync(path.dirname(VFILE), { recursive: true }); fs.writeFileSync(VFILE, JSON.stringify([...visitors])); fs.writeFileSync(GFILE, String(games)); } catch (e) {} }, 5000).unref();
 let dirty = false, writing = false;
 function flush() {
   if (!dirty || writing) return;
@@ -74,7 +76,7 @@ function api(req, res, url) {
   if (req.method === 'OPTIONS') return send(res, 204, '');
   if (req.method === 'GET') {
     const limit = Math.max(1, Math.min(100, +url.searchParams.get('limit') || 50));
-    return send(res, 200, { scores: sorted().slice(0, limit).map(e => ({ n: e.n, s: e.s, k: pub(e.id) })), visitors: visitors.size });
+    return send(res, 200, { scores: sorted().slice(0, limit).map(e => ({ n: e.n, s: e.s, k: pub(e.id) })), visitors: visitors.size, games });
   }
   if (req.method !== 'POST') return send(res, 405, { error: 'method' });
   let raw = '';
@@ -85,11 +87,12 @@ function api(req, res, url) {
     const id = String(b.id || '');
     if (!/^[a-z0-9]{6,32}$/.test(id)) return send(res, 400, { error: 'id' });
     if (limited(clientIp(req))) return send(res, 429, { error: 'slow down' });
-    if (b.action === 'visit') { if (!visitors.has(id) && visitors.size < 5e6) { visitors.add(id); vDirty = true; } return send(res, 200, { ok: true, visitors: visitors.size }); }
+    if (b.action === 'visit') { if (!visitors.has(id) && visitors.size < 5e6) { visitors.add(id); vDirty = true; } return send(res, 200, { ok: true, visitors: visitors.size, games }); }
     // step 1: signed single-use run ticket, issued when a flight starts
     if (b.action === 'start') {
       const ts = Date.now(), nonce = crypto.randomBytes(8).toString('hex');
-      return send(res, 200, { t: [ts, nonce, sign(id, ts, nonce)].join('.') });
+      games++; vDirty = true;
+      return send(res, 200, { t: [ts, nonce, sign(id, ts, nonce)].join('.'), games });
     }
     // step 2: the finished run, checked against the ticket and against what the game can physically produce
     const score = Math.floor(+b.score), dist = Math.floor(+b.dist), level = Math.floor(+b.level), pills = Math.floor(+b.pills), playMs = Math.floor(+b.playMs);

@@ -88,4 +88,4 @@ The game refreshes the World board every 10 seconds and whenever the tab becomes
 No browser game can be 100% cheat-proof (the code runs on the player's device), but a faked score now has to look like a real run that took real time.
 
 ## Controls
-On-screen buttons show while flying on every device: **Up / Down** (right) and **Slow / Fast** (left). Dragging a finger, the mouse, arrow keys and WASD still work.
+On-screen buttons show while flying on every device: **Up / Down** (bottom right). Dragging a finger, the mouse, arrow keys and WASD still work.

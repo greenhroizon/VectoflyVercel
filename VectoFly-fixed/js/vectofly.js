@@ -103,7 +103,7 @@ var VF = (function(){
 
   // ---------- LEADERBOARD: global (own Node server, or Firebase Realtime Database over REST) + local ----------
   // API_URL / same-origin /api/scores -> server/server.js ; FIREBASE_URL -> Firebase. Neither reachable -> local board only.
-  var G = {list:null, state:'idle', at:0, dead:false, err:'', rej:'', visitors:-1};
+  var G = {list:null, state:'idle', at:0, dead:false, err:'', rej:'', sub:'', rank:0, visitors:-1, games:0};
   function mode_(){ return CFG.FIREBASE_URL ? 'fb' : 'api'; }
   function apiBase(){ return String(CFG.API_URL || '').replace(/\/+$/,''); }
   function gOn(){
@@ -129,6 +129,7 @@ var VF = (function(){
         } else {
           if (!j || !j.scores){ var en = new Error('not a score server'); en.notJson = true; throw en; }
           if (typeof j.visitors === 'number') G.visitors = j.visitors;
+          if (typeof j.games === 'number') G.games = j.games;
           j.scores.forEach(function(e){ if (e && typeof e.s === 'number') arr.push({n:String(e.n).slice(0,12), s:Math.floor(e.s), k:e.k}); });
         }
         arr.sort(function(a,b){ return b.s - a.s; });
@@ -154,7 +155,7 @@ var VF = (function(){
     if (!S.uid){ S.uid = newId(); save(); }
     withTimeout(fetch(apiBase() + '/api/scores', {method:'POST', cache:'no-store', headers:{'Content-Type':'application/json'}, body:JSON.stringify({action:'visit', id:S.uid})}), 8000)
       .then(function(r){ if (!r.ok) throw new Error('http'); return r.json(); })
-      .then(function(j){ if (j && typeof j.visitors === 'number'){ G.visitors = j.visitors; paintBoard(); } })
+      .then(function(j){ if (j && typeof j.visitors === 'number'){ G.visitors = j.visitors; if (typeof j.games === 'number') G.games = j.games; paintBoard(); } })
       .catch(function(){});
   }
   function gStart(){
@@ -163,25 +164,29 @@ var VF = (function(){
     if (!S.uid){ S.uid = newId(); save(); }
     withTimeout(fetch(apiBase() + '/api/scores', {method:'POST', cache:'no-store', headers:{'Content-Type':'application/json'}, body:JSON.stringify({action:'start', id:S.uid})}), 8000)
       .then(function(r){ if (!r.ok) throw new Error('http ' + r.status); return r.json(); })
-      .then(function(j){ if (j && j.t) ticket = j.t; })
+      .then(function(j){ if (j && j.t) ticket = j.t; if (j && typeof j.games === 'number') G.games = j.games; })
       .catch(function(){});
   }
   function gSubmit(score, dist, level, pills){
     if (!gOn() || score <= 0 || cheated) return;
     if (!S.uid){ S.uid = newId(); save(); }
-    if (score < (S.gbest || 0)) return;
+    G.sub = 'Saving your score...'; paintBoard();
     var req;
     if (mode_() === 'fb'){
       req = fetch(gUrl('/' + S.uid), {method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify({n:(S.name || 'Pilot').slice(0,12), s:score, t:{'.sv':'timestamp'}})})
         .then(function(r){ if (!r.ok) throw new Error('http ' + r.status); });
     } else {
       req = fetch(apiBase() + '/api/scores', {method:'POST', headers:{'Content-Type':'application/json'}, cache:'no-store', body:JSON.stringify({id:S.uid, name:(S.name || 'Pilot').slice(0,12), score:score, dist:dist, level:level, pills:pills, playMs:Math.round(playMs), diff:S.diff, plane:S.plane, t:ticket})})
-        .then(function(r){ if (!r.ok){ var er = new Error('http ' + r.status); er.status = r.status; throw er; } return r.json(); })
-        .then(function(j){ if (j && j.k) S.gk = j.k; });
+        .then(function(r){ if (!r.ok){ var er = new Error('http ' + r.status); er.status = r.status; return r.text().then(function(t){ try { er.code = (JSON.parse(t) || {}).error || ''; } catch(x){} throw er; }); } return r.json(); })
+        .then(function(j){ if (j && j.k) S.gk = j.k; if (j && j.rank) G.rank = j.rank; });
     }
     withTimeout(req, 9000)
-      .then(function(){ G.rej = ''; S.gbest = Math.max(S.gbest || 0, score); save(); gFetch(true); })
-      .catch(function(e){ if (e && (e.status === 403 || e.status === 422)) G.rej = 'The server did not accept your last score.'; });
+      .then(function(){ G.sub = G.rank ? 'Score saved - you are #' + G.rank + ' in the world!' : 'Score saved to the world board!'; S.gbest = Math.max(S.gbest || 0, score); save(); gFetch(true); paintBoard(); })
+      .catch(function(e){
+        var why = e && e.code ? e.code : (e && e.status ? 'http ' + e.status : 'no connection');
+        G.sub = 'Score not saved (' + why + ').' + (e && e.code === 'ticket' ? ' Reload the page and play again.' : '');
+        paintBoard();
+      });
   }
   function localAll(){ return S.board.map(function(e){ return {n:e.n,s:e.s}; }).concat(BOTS.map(function(b){ return {n:b.n,s:b.s,b:1}; })).sort(function(a,b){ return b.s-a.s; }); }
   // base list the live in-game board compares against
@@ -210,15 +215,16 @@ var VF = (function(){
         if (!list.length) msg = 'No scores yet - be the first!';
         else if (S.uid && S.gbest && !G.list.some(function(x){ return myKey() && x.k === myKey(); })) msg = 'Your world best: ' + S.gbest;
         if (G.state === 'err') msg = 'Offline - showing the last scores we got.';
-        else if (G.rej) msg = G.rej;
+
       } else {
         list = []; msg = G.state === 'err' ? (G.err || 'Could not reach the world board. Retrying...') : 'Loading world leaderboard...';
       }
     } else {
       list = localAll().slice(0,8).map(function(x,i){ x.r = i+1; return x; });
     }
+    if (G.sub && gOn()) msg = G.sub;
     fill(el, list); note.textContent = msg;
-    var vc = $('visitors'); if (vc){ vc.style.display = (gOn() && G.visitors >= 0) ? 'flex' : 'none'; vc.innerHTML = '<span class="vdot"></span><b>' + G.visitors.toLocaleString() + '</b> ' + (G.visitors === 1 ? 'pilot has' : 'pilots have') + ' visited'; }
+    var vc = $('visitors'); if (vc){ vc.style.display = (gOn() && G.visitors >= 0) ? 'flex' : 'none'; vc.innerHTML = '<span class="vdot"></span><span><b>' + G.visitors.toLocaleString() + '</b> ' + (G.visitors === 1 ? 'pilot' : 'pilots') + '</span><span class="vsep"></span><span><b>' + G.games.toLocaleString() + '</b> ' + (G.games === 1 ? 'game' : 'games') + ' played</span>'; }
   }
   function drawLive(){
     var cur = {n:S.name||'You', s:F.score(), you:1}, list = all().concat([cur]).sort(function(a,b){ return b.s-a.s || (b.you?1:-1); });
@@ -261,7 +267,7 @@ var VF = (function(){
     var launch = function(){
       if (launched) return; launched = true; starting = false;
       $('panel').className = 'hide'; runCoins = 0; newBest = false; legit = 0; playMs = 0; cheated = false;
-      document.body.className = 'playing';
+      document.body.className = 'playing'; G.sub = '';
       startGame(); gStart();
       try { musicStart(); if (AC && engineG) engineG.gain.setTargetAtTime(.06, AC.currentTime, .3); } catch(e){}
       try { if (cg) cg.game.gameplayStart(); } catch(e){}

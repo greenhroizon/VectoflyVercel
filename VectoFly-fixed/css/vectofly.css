@@ -101,7 +101,7 @@ ol li i{opacity:.9}
 
 
 /* ---- on-screen flight controls (shown while flying, on every device) ---- */
-#ctl{position:absolute;left:0;right:0;bottom:0;display:none;justify-content:space-between;align-items:flex-end;z-index:7;pointer-events:none;
+#ctl{position:absolute;left:0;right:0;bottom:0;display:none;justify-content:flex-end;align-items:flex-end;z-index:7;pointer-events:none;
   padding:0 max(14px,env(safe-area-inset-right)) max(16px,env(safe-area-inset-bottom)) max(14px,env(safe-area-inset-left))}
 body.playing #ctl{display:flex}
 #ctl .grp{display:flex;gap:12px}
@@ -147,3 +147,4 @@ body.playing #visitors{display:none!important}
 /* on phones the menu already shows the leaderboard: hide the in-game mini board behind it so it never collides with the counter */
 @media (max-width:40em){body:not(.playing) #live{display:none}}
 @media (max-height:520px){body:not(.playing) #live{display:none}}
+#visitors .vsep{width:1px;height:12px;background:rgba(244,206,147,.45)}
