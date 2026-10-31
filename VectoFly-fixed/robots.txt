@@ -4,4 +4,4 @@ Allow: /
 Disallow: /server/
 Disallow: /api/
 
-Sitemap: https://YOUR-DOMAIN.com/sitemap.xml
+Sitemap: https://vectofly.com/sitemap.xml
