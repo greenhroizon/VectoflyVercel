@@ -107,7 +107,7 @@ body.playing #ctl{display:flex}
 #ctl .grp{display:flex;gap:12px}
 #ctl .grp.stack{flex-direction:column}
 #ctl button{pointer-events:auto;touch-action:none;-webkit-touch-callout:none;-webkit-user-select:none;user-select:none;
-  width:clamp(58px,15vmin,86px);height:clamp(58px,15vmin,86px);padding:0;border-radius:50%;border:3px solid rgba(255,246,226,.85);
+  position:relative;width:clamp(68px,16vmin,100px);height:clamp(68px,16vmin,100px);padding:0;border-radius:50%;border:3px solid rgba(255,246,226,.85);
   background:rgba(35,25,15,.5);color:#fff6e2;font-family:Georgia,serif;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;
   box-shadow:0 4px 14px rgba(0,0,0,.3);-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);transition:transform .06s,background .06s}
 #ctl button span{font-size:clamp(22px,6vmin,34px);line-height:1}
@@ -153,3 +153,10 @@ body.playing #visitors{display:none!important}
 #warn{position:absolute;right:max(8px,env(safe-area-inset-right));top:40%;width:32px;height:32px;border-radius:50%;display:none;z-index:6;pointer-events:none;
   background:#ff8a1f;color:#fff;font:bold 20px/32px Georgia,serif;text-align:center;box-shadow:0 0 0 3px rgba(255,255,255,.85),0 0 14px #ff8a1f;animation:warnPulse .45s infinite alternate}
 @keyframes warnPulse{from{transform:scale(.88);opacity:.75}to{transform:scale(1.08);opacity:1}}
+
+/* touch quality: bigger invisible hit area on the buttons, no browser gestures while flying */
+#ctl button::after{content:'';position:absolute;inset:-12px;border-radius:50%}
+body.nobtns #ctl{display:none!important}
+html{overscroll-behavior:none}
+body.playing,body.playing *{touch-action:none;-webkit-touch-callout:none}
+.opts{display:flex;flex-wrap:wrap;justify-content:center;gap:2px 6px}

@@ -3,7 +3,7 @@ var VF = (function(){
   var $ = function(i){ return document.getElementById(i); };
   var KEY = 'vectofly_save_v1', OLD_KEY = 'flyaero_save_v1';
   var CFG = window.VECTOFLY_CONFIG || {};
-  var S = {name:'', uid:'', gbest:0, hi:0, coins:0, dist:0, games:0, bestLevel:1, music:true, sfx:true, board:[], gk:'', diff:'hard', wallet:-1, plane:'classic', planes:['classic'], skin:'default', skins:['default'], map:'coast', maps:['coast']};
+  var S = {name:'', uid:'', gbest:0, hi:0, coins:0, dist:0, games:0, bestLevel:1, music:true, sfx:true, vib:true, btns:true, hint:false, board:[], gk:'', diff:'hard', wallet:-1, plane:'classic', planes:['classic'], skin:'default', skins:['default'], map:'coast', maps:['coast']};
   // Targets for the local board so it is never empty. They are clearly labelled bots, not real players.
   var BOTS = [{n:'Ace (bot)',s:9000,b:1},{n:'Maverick (bot)',s:5000,b:1},{n:'Skylark (bot)',s:2500,b:1},{n:'Rookie (bot)',s:800,b:1}];
   var shake = 0, lastWarn = 0, mode = 'menu', lastEarned = 0, F = {paused:false}, cg = null, muted = false, runCoins = 0, newBest = false, lastBoard = 0, frameN = 0, legit = 0, playMs = 0, cheated = false, ticket = null;
@@ -237,7 +237,7 @@ var VF = (function(){
 
   // ---------- PANEL (menu + game over) ----------
   function drawPanel(m){
-    mode = m; document.body.className = '';
+    mode = m; document.body.classList.remove('playing');
     $('pTitle').textContent = mode==='over' ? 'Game Over' : 'VectoFly';
     $('pSub').textContent = mode==='over'
       ? (cheated ? 'Cheat detected - this run was not counted.' : (game.reason ? game.reason + '  ' : '') + 'Score ' + F.score() + (newBest ? '  -  NEW BEST!' : '  -  Best ' + S.hi) + '  -  +' + lastEarned + ' coins')
@@ -250,7 +250,8 @@ var VF = (function(){
     $('nameIn').value = S.name || $('nameIn').value;
     paintBoard(); gFetch(false);
     $('stats').textContent = 'Best ' + S.hi + '  |  Pills ' + S.coins + '  |  Flights ' + S.games + '  |  Top level ' + S.bestLevel;
-    $('optMusic').checked = S.music; $('optSfx').checked = S.sfx;
+    $('optMusic').checked = S.music; $('optSfx').checked = S.sfx; $('optVib').checked = S.vib !== false; $('optBtns').checked = S.btns !== false;
+    document.body.classList.toggle('nobtns', S.btns === false);
     $('panel').className = '';
   }
   var starting = false;
@@ -267,7 +268,8 @@ var VF = (function(){
     var launch = function(){
       if (launched) return; launched = true; starting = false;
       $('panel').className = 'hide'; runCoins = 0; newBest = false; legit = 0; playMs = 0; cheated = false;
-      document.body.className = 'playing'; G.sub = '';
+      document.body.classList.add('playing'); G.sub = '';
+      if (F.touching && !S.hint){ S.hint = true; save(); setTimeout(function(){ toast('Slide a thumb anywhere to steer', '#fff6e2'); }, 600); }
       startGame(); gStart();
       try { musicStart(); if (AC && engineG) engineG.gain.setTargetAtTime(.06, AC.currentTime, .3); } catch(e){}
       try { if (cg) cg.game.gameplayStart(); } catch(e){}
@@ -543,11 +545,12 @@ var VF = (function(){
     endRun('Cheat detected - run not counted.');
   };
   F.onCoin = function(){ runCoins++; sfx('coin'); };
-  F.onHit = function(){ sfx('hit'); shake = 14; };
+  F.onHit = function(){ sfx('hit'); shake = 14; buzz(45); };
+  function buzz(p){ try { if (S.vib !== false && navigator.vibrate) navigator.vibrate(p); } catch(e){} }
   F.onFuel = function(){ sfx('fuel'); toast('+FUEL','#f4a63a'); };
   F.onLevel = function(l){ sfx('level'); toast('LEVEL ' + l,'#68c3c0'); };
   F.onGameOver = function(){
-    var sc = F.score(); sfx('over');
+    var sc = F.score(); sfx('over'); buzz([70,40,120]);
     if (cheated){ lastEarned = 0; newBest = false; if (engineG) engineG.gain.setTargetAtTime(0, AC.currentTime, .2); save(); try { if (cg) cg.game.gameplayStop(); } catch(e){} return; }
     lastEarned = Math.floor((runCoins*(plane().coin||1) + sc/200) * diff().mult); S.wallet += lastEarned;
     if (engineG) engineG.gain.setTargetAtTime(0, AC.currentTime, .2);
@@ -592,13 +595,16 @@ var VF = (function(){
     else if (game.fuel < 30 && Date.now()-lastWarn > 1100){ lastWarn = Date.now(); sfx('warn'); }
     // keyboard steering (arrows / WASD) feeds the same mousePos the mouse uses
     var dx = (keys[39]||keys[68]||pad.r?1:0)-(keys[37]||keys[65]||pad.l?1:0), dy = (keys[38]||keys[87]||pad.u?1:0)-(keys[40]||keys[83]||pad.d?1:0);
-    if (dx||dy) mousePos = {x:Math.max(-1,Math.min(1,mousePos.x+dx*.03)), y:Math.max(-1,Math.min(1,mousePos.y+dy*.04))};
+    // time based (same speed at 30 or 120 fps) and it speeds up the longer you hold: precise taps, fast sweeps
+    var dtS = Math.min(deltaTime, 50)/1000;
+    if (dx||dy){ held += dtS; var ramp = 1 + Math.min(held, .5)/.5; mousePos = {x:Math.max(-1,Math.min(1,mousePos.x+dx*1.8*ramp*dtS)), y:Math.max(-1,Math.min(1,mousePos.y+dy*2.2*ramp*dtS))}; } else held = 0;
     if (engine) engine.frequency.value = 40 + game.speed*70000;
     if (Date.now()-lastBoard > 250){ lastBoard = Date.now(); drawLive(); }
   };
 
   // ---------- INPUT / LIFECYCLE ----------
-  var keys = {}, pad = {u:0,d:0,l:0,r:0};
+  var keys = {}, pad = {u:0,d:0,l:0,r:0}, held = 0;
+  F.touching = false;
   F.padHeld = function(){ return !!(pad.u || pad.d || pad.l || pad.r); };
   function initPad(){
     var el = $('ctl'); if (!el) return;
@@ -633,6 +639,9 @@ var VF = (function(){
     $('backBtn').onclick = closeShop;
     $('optMusic').onchange = function(){ S.music = this.checked; apply(); save(); };
     $('optSfx').onchange = function(){ S.sfx = this.checked; apply(); save(); };
+    $('optVib').onchange = function(){ S.vib = this.checked; save(); if (S.vib) buzz(30); };
+    $('optBtns').onchange = function(){ S.btns = this.checked; document.body.classList.toggle('nobtns', !S.btns); save(); };
+    if (!navigator.vibrate) $('vibLbl').style.display = 'none';
     $('soundBtn').onclick = function(){ var on = !(S.music||S.sfx); S.music = S.sfx = on; apply(); save(); $('optMusic').checked = $('optSfx').checked = on; };
     document.addEventListener('keydown', function(e){
       if (e.target.tagName === 'INPUT' && e.target.type === 'text') { if (e.keyCode===13){ e.preventDefault(); begin(); } return; }

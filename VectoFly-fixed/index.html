@@ -55,9 +55,9 @@
 <link rel="preconnect" href="https://sdk.crazygames.com" crossorigin>
 <link rel="preload" href="js/three.min.js" as="script">
 
-<link rel="stylesheet" href="css/game.css?v=5">
-<link rel="stylesheet" href="css/vectofly.css?v=5">
-<link rel="stylesheet" href="css/seo.css?v=5">
+<link rel="stylesheet" href="css/game.css?v=6">
+<link rel="stylesheet" href="css/vectofly.css?v=6">
+<link rel="stylesheet" href="css/seo.css?v=6">
 
 <!-- Structured data (JSON-LD) -->
 <script type="application/ld+json">{"@context": "https://schema.org", "@type": "WebSite", "@id": "https://YOUR-DOMAIN.com/#website", "url": "https://YOUR-DOMAIN.com/", "name": "VectoFly", "description": "Free endless 3D plane game you can play online in your browser.", "inLanguage": "en", "publisher": {"@id": "https://YOUR-DOMAIN.com/#org"}}</script>
@@ -66,13 +66,13 @@
 <script type="application/ld+json">{"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": "What is VectoFly?", "acceptedAnswer": {"@type": "Answer", "text": "VectoFly is a free endless 3D plane game that runs in your browser. You fly over an endless world, avoid red spikes, collect blue repair pills and orange fuel cans, and try to reach the top of the global leaderboard."}}, {"@type": "Question", "name": "Is VectoFly free to play?", "acceptedAnswer": {"@type": "Answer", "text": "Yes. VectoFly is completely free to play online. There is nothing to download or install and no account is required."}}, {"@type": "Question", "name": "How do I play VectoFly?", "acceptedAnswer": {"@type": "Answer", "text": "Move your mouse, touch the screen, or use the arrow keys or WASD to steer your plane. Press Space to start, P to pause and M to mute. Collect blue pills to repair damage and orange cans to refuel."}}, {"@type": "Question", "name": "Can I play VectoFly on mobile?", "acceptedAnswer": {"@type": "Answer", "text": "Yes. VectoFly works on phones, tablets and desktop computers in any modern browser that supports WebGL, using touch controls on mobile."}}, {"@type": "Question", "name": "Does VectoFly have a leaderboard?", "acceptedAnswer": {"@type": "Answer", "text": "Yes. The World tab shows the global leaderboard with the best score for each pilot, and the This device tab shows your own best runs."}}, {"@type": "Question", "name": "Are there different planes and maps?", "acceptedAnswer": {"@type": "Answer", "text": "Yes. In the Hangar you can unlock different planes and paint patterns, and the Maps menu lets you fly through different worlds. You can also pick Easy, Medium, Hard or Hell difficulty."}}]}</script>
 
 <script defer src="https://sdk.crazygames.com/crazygames-sdk-v3.js"></script>
-<script defer src="js/config.js?v=5"></script>
+<script defer src="js/config.js?v=6"></script>
 <script defer src="js/TweenMax.min.js"></script>
 <script defer src="js/three.min.js"></script>
-<script defer src="js/world.js?v=5"></script>
-<script defer src="js/planes.js?v=5"></script>
-<script defer src="js/vectofly.js?v=5"></script>
-<script defer src="js/game.js?v=5"></script>
+<script defer src="js/world.js?v=6"></script>
+<script defer src="js/planes.js?v=6"></script>
+<script defer src="js/vectofly.js?v=6"></script>
+<script defer src="js/game.js?v=6"></script>
 </head>
 <body>
 <div class="game-holder" id="gameHolder">
@@ -130,8 +130,8 @@
       <div id="diffRow"></div><div id="diffNote"></div>
       <button id="playBtn">Play</button>
       <div class="row2"><button id="hangarBtn">Hangar</button><button id="mapsBtn">Maps</button></div>
-      <div class="opts"><label><input type="checkbox" id="optMusic" checked> Music</label><label><input type="checkbox" id="optSfx" checked> Sound FX</label></div>
-      <div class="help">Use the on-screen &#9650;&#9660; buttons, drag, mouse, arrow keys or WASD to fly &middot; Space = play &middot; P = pause &middot; M = mute</div>
+      <div class="opts"><label><input type="checkbox" id="optMusic" checked> Music</label><label><input type="checkbox" id="optSfx" checked> Sound FX</label><label id="vibLbl"><input type="checkbox" id="optVib" checked> Vibrate</label><label><input type="checkbox" id="optBtns" checked> Buttons</label></div>
+      <div class="help">Touch: slide a thumb anywhere to steer, or hold the &#9650;&#9660; buttons &middot; Mouse, arrow keys or WASD also work &middot; Space = play &middot; P = pause &middot; M = mute</div>
       <div class="credit">Based on "The Aviator" by Karim Maaloul (Codrops)</div>
       <div class="legal"><a href="how-to-play.html" target="_blank">How to play</a> &middot; <a href="about.html" target="_blank">About</a> &middot; <a href="contact.html" target="_blank">Contact</a> &middot; <a href="privacy.html" target="_blank">Privacy</a> &middot; <a href="terms.html" target="_blank">Terms</a> &middot; <a href="cookie-policy.html" target="_blank">Cookies</a></div>
     </div>

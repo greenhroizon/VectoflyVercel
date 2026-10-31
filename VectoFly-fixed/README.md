@@ -106,6 +106,44 @@ Easier alternative to step 4: Project settings > Service accounts > Database sec
 No browser game can be 100% cheat-proof (the code runs on the player's device), but a faked score now has to look like a real run that took real time.
 
 ## Controls
+- **Touch (phone / tablet):** slide a thumb anywhere on the screen. The plane moves by the amount you slide (relative steering), so your thumb never hides the plane and nothing jumps when you touch down. Holding the on-screen **Up / Down** buttons gives precise, accelerating moves; they can be used with the other thumb.
+- **Mouse:** the plane follows the pointer. **Keyboard:** arrows or WASD, Space = play/pause, M = mute.
+- Touch devices get quicker plane response, a slightly larger pill pick-up radius, and vibration on hits (menu options: Vibrate, Buttons).
+
+## Leaderboard with Firebase (Vercel)
+The game talks only to `/api/scores` (a Vercel function). That function stores everything in a **Firebase Realtime Database** using admin credentials, so the database itself can stay locked and nobody can write fake scores.
+
+1. **Create the project** - https://console.firebase.google.com > Add project > any name (Analytics not needed).
+2. **Create the database** - Build > Realtime Database > Create Database > pick a location > **Start in locked mode**. Copy the database URL at the top (like `https://my-game-default-rtdb.firebaseio.com`, or `...europe-west1.firebasedatabase.app`).
+3. **Paste the rules** - Realtime Database > Rules tab > replace everything with the text below > Publish:
+```
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+    "scores": { ".indexOn": ["s"] },
+    "used":   { ".indexOn": ".value" }
+  }
+}
+```
+4. **Get the admin key** - Project settings (gear icon) > Service accounts > Generate new private key > Generate key. A `.json` file downloads. Keep it private, never put it in the website files or GitHub.
+5. **Add 2 variables in Vercel** - your project > Settings > Environment Variables (enable Production, Preview and Development):
+   - `FIREBASE_DB_URL` = the database URL from step 2
+   - `FIREBASE_SERVICE_ACCOUNT` = open the downloaded `.json` in a text editor, copy **everything** (from the first `{` to the last `}`), paste it as the value
+6. **Redeploy** - Deployments > latest > ... > Redeploy (variables only apply to new deployments).
+7. **Check** - open `https://your-site.vercel.app/api/scores?debug=1`. You want `"ok":true`, `"read":"ok"`, `"write":"ok"`.
+
+If the check fails, `debug` says what is wrong (missing variable, invalid JSON, wrong URL, permission). Old Redis / Upstash variables are no longer used and can be removed.
+Easier alternative to step 4: Project settings > Service accounts > Database secrets > Show, copy the secret and set it as `FIREBASE_SECRET` instead of `FIREBASE_SERVICE_ACCOUNT` (older method, still works).
+
+## Anti-cheat
+- **Signed run tickets**: when a flight starts the server issues a signed, single-use ticket bound to the player. A score is only accepted with a valid, unused ticket.
+- **Physics check on the server**: distance must fit the real time elapsed (and the time actually played), pills must fit the distance, the score must equal `(distance + 5 x pills) x difficulty multiplier`, and the level must match the distance.
+- **In-game guards**: damage, fuel, distance and speed are tracked separately; editing them in the console stops the run ("Cheat detected") and the run is not submitted or rewarded.
+- Optional: set `SCORE_SECRET` (any long random string) in Vercel env vars to sign tickets with your own secret.
+No browser game can be 100% cheat-proof (the code runs on the player's device), but a faked score now has to look like a real run that took real time.
+
+## Controls
 On-screen buttons show while flying on every device: **Up / Down** (bottom right). Dragging a finger, the mouse, arrow keys and WASD still work.
 
 ## Gameplay

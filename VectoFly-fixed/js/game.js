@@ -135,30 +135,53 @@ function handleWindowResize() {
   camera.updateProjectionMatrix();
 }
 
+// ---------- INPUT ----------
+// Mouse: absolute (the plane follows the pointer).
+// Touch: RELATIVE drag. Put a thumb anywhere and slide: the plane moves by the amount you slide, so your thumb never hides the plane,
+// there is no jump when you touch down, and a small thumb movement covers the whole height. Hold the on-screen buttons for fine moves.
+var lastTouchT = 0, steer = null;
 function onPad(t){ return !!(t && t.closest && t.closest('#ctl')); }
+function clamp1(v){ return Math.max(-1, Math.min(1, v)); }
 
 function handleMouseMove(event) {
+  if (Date.now() - lastTouchT < 900) return;          // browsers fire fake mouse events after a tap: ignore them
+  if (window.VF) VF.touching = false;
   if (onPad(event.target) || (window.VF && VF.padHeld && VF.padHeld())) return;   // steering with the buttons: ignore the pointer
   var tx = -1 + (event.clientX / WIDTH)*2;
   var ty = 1 - (event.clientY / HEIGHT)*2;
   mousePos = {x:tx, y:ty};
 }
 
-function handleTouchMove(event) {
-    if (game.status!="playing") return;
-    event.preventDefault();
-    var t = null;
-    for (var i=0;i<event.touches.length;i++){ if (!onPad(event.touches[i].target)){ t = event.touches[i]; break; } }
-    if (!t || (window.VF && VF.padHeld && VF.padHeld())) return;   // only fingers on the buttons: leave steering to them
-    var tx = -1 + (t.pageX / WIDTH)*2;
-    var ty = 1 - (t.pageY / HEIGHT)*2;
-    mousePos = {x:tx, y:ty};
+function handleTouchStart(e){
+  lastTouchT = Date.now(); if (window.VF) VF.touching = true;
+  if (game.status!="playing" || steer) return;
+  for (var i=0;i<e.changedTouches.length;i++){
+    var t = e.changedTouches[i];
+    if (!onPad(t.target)){ steer = {id:t.identifier, px:t.clientX, py:t.clientY, mx:mousePos.x, my:mousePos.y}; break; }
+  }
+}
+
+function handleTouchMove(e){
+  lastTouchT = Date.now();
+  if (game.status!="playing") return;
+  e.preventDefault();                                   // no scrolling / pull-to-refresh while flying
+  if (!steer) return;
+  var t = null;
+  for (var i=0;i<e.touches.length;i++){ if (e.touches[i].identifier===steer.id){ t = e.touches[i]; break; } }
+  if (!t) return;
+  if (window.VF && VF.padHeld && VF.padHeld()){ steer.px=t.clientX; steer.py=t.clientY; steer.mx=mousePos.x; steer.my=mousePos.y; return; }   // buttons win; re-anchor so nothing jumps afterwards
+  var ry = Math.max(170, Math.min(300, HEIGHT*.38)),   // finger travel (px) that covers the full height
+      rx = Math.max(200, Math.min(380, WIDTH*.45));    // horizontal travel is gentler: it only changes speed
+  mousePos = {x: clamp1(steer.mx + (t.clientX-steer.px)*2/rx), y: clamp1(steer.my - (t.clientY-steer.py)*2/ry)};
+}
+
+function handleTouchEnd(e){
+  lastTouchT = Date.now();
+  if (!steer) return;
+  for (var i=0;i<e.changedTouches.length;i++){ if (e.changedTouches[i].identifier===steer.id){ steer = null; break; } }
 }
 
 function handleMouseUp(event){}
-
-
-function handleTouchEnd(event){}
 
 // LIGHTS
 
@@ -525,7 +548,7 @@ CoinsHolder.prototype.rotateCoins = function(){
 
     var diffPos = airplane.mesh.position.clone().sub(coin.mesh.position);
     var d = diffPos.length();
-    if (d<game.coinDistanceTolerance && game.status=="playing"){
+    if (d<game.coinDistanceTolerance*(window.VF && VF.touching ? 1.2 : 1) && game.status=="playing"){
       this.coinsPool.unshift(this.coinsInUse.splice(i,1)[0]);
       this.mesh.remove(coin.mesh);
       particlesHolder.spawnParticles(coin.mesh.position.clone(), 5, 0x009999, .8);
@@ -803,8 +826,9 @@ function updatePlane(){
   game.planeCollisionDisplacementY += game.planeCollisionSpeedY;
   targetY += game.planeCollisionDisplacementY;
 
-  airplane.mesh.position.y += (targetY-airplane.mesh.position.y)*deltaTime*game.planeMoveSensivity;
-  airplane.mesh.position.x += (targetX-airplane.mesh.position.x)*deltaTime*game.planeMoveSensivity;
+  var sens = game.planeMoveSensivity * ((window.VF && (VF.touching || VF.padHeld())) ? 1.8 : 1);   // touch and buttons: quicker response
+  airplane.mesh.position.y += (targetY-airplane.mesh.position.y)*deltaTime*sens;
+  airplane.mesh.position.x += (targetX-airplane.mesh.position.x)*deltaTime*sens;
 
   airplane.mesh.rotation.z = (targetY-airplane.mesh.position.y)*deltaTime*game.planeRotXSensivity;
   airplane.mesh.rotation.x = (airplane.mesh.position.y-targetY)*deltaTime*game.planeRotZSensivity;
@@ -846,7 +870,7 @@ function updateWarn(){
 }
 
 function startGame(){
-  resetGame(); VF.applyPerks(); guardDamage = 0; guardFuel = 100;
+  resetGame(); VF.applyPerks(); guardDamage = 0; guardFuel = 100; mousePos = {x:0, y:0}; steer = null;
   airplane.mesh.position.y=game.planeDefaultHeight; airplane.mesh.rotation.set(0,0,0);
   while(ennemiesHolder.ennemiesInUse.length){ var e=ennemiesHolder.ennemiesInUse.pop(); ennemiesHolder.mesh.remove(e.mesh); ennemiesPool.push(e); }
   while(fuelHolder.inUse.length){ var u=fuelHolder.inUse.pop(); fuelHolder.mesh.remove(u.mesh); fuelHolder.pool.push(u); }
@@ -899,10 +923,11 @@ function init(event){
   createPuffs();
 
   document.addEventListener('mousemove', handleMouseMove, false);
+  document.addEventListener('touchstart', handleTouchStart, {passive:true});
   document.addEventListener('touchmove', handleTouchMove, {passive:false});
-  document.addEventListener('touchstart', function(e){ if(game.status=="playing"&&e.target.tagName=="CANVAS"&&!(window.VF&&VF.padHeld&&VF.padHeld())){var t=e.touches[e.touches.length-1];mousePos={x:-1+(t.pageX/WIDTH)*2,y:1-(t.pageY/HEIGHT)*2};} }, false);
   document.addEventListener('mouseup', handleMouseUp, false);
   document.addEventListener('touchend', handleTouchEnd, false);
+  document.addEventListener('touchcancel', handleTouchEnd, false);
 
   loop();
 }
