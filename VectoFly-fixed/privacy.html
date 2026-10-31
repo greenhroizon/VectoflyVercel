@@ -13,103 +13,173 @@
     <link rel="stylesheet" href="css/seo.css" />
     <script defer src="js/analytics.js"></script>
   </head>
-  <body>
+  <body class="site-page">
+    <a class="skip-link" href="#page-content">Skip to content</a>
     <div class="page">
-      <nav aria-label="Site navigation">
-        <a href="./">Play</a> · <a href="leaderboard.html">Leaderboard</a> ·
-        <a href="how-to-play.html">How to play</a> ·
-        <a href="about.html">About</a> · <a href="contact.html">Contact</a> ·
-        <a href="privacy.html">Privacy</a> · <a href="terms.html">Terms</a> ·
-        <a href="cookie-policy.html">Cookies</a> ·
-        <a href="disclaimer.html">Disclaimer</a> ·
-        <a href="dmca.html">Copyright</a>
-      </nav>
-      <main>
-        <h1>Privacy Policy</h1>
-        <p class="updated">Updated 31 October 2026</p>
-        <section>
-          <h2>Information on your device</h2>
-          <p>
-            VectoFly stores your pilot name, device-generated player ID, best
-            scores, wallet, purchased unlocks, selected aircraft and map, and
-            settings in browser local storage. Clearing browser data can remove
-            this progress. No account or password is required.
-          </p>
-        </section>
-        <section>
-          <h2>Global leaderboard and security</h2>
-          <p>
-            When the score service is available, your chosen pilot name, best
-            score, distance, level, aircraft, difficulty and submission time are
-            stored by the leaderboard service. Pilot names and best scores are
-            public. A hashed player key identifies your entry publicly; your
-            device ID is sent to the score server. Choose a nickname, not a real
-            name or email. The service also counts devices and game starts and
-            uses signed run tickets and rate limits to reduce abuse. Hosting
-            providers receive connection information such as IP addresses and
-            browser request metadata.
-          </p>
-        </section>
-        <section>
-          <h2>Optional Google Analytics</h2>
-          <p>
-            Only after you allow analytics, Google Analytics 4 (G-LXSLC7ZVNW)
-            measures page views, game starts and ends, selections and
-            leaderboard visits. Google may process cookies, device and browser
-            information, approximate location and usage data. We do not send
-            pilot names, email addresses or player IDs as custom analytics
-            events. Advertising personalization and Google signals are disabled
-            in our configuration. Use Analytics preferences to change your
-            choice; declining stops future loading after reload but does not
-            delete previously collected data or existing Google cookies. You can
-            clear those through browser settings.
-          </p>
-        </section>
-        <section>
-          <h2>Other providers</h2>
-          <p>
-            The website is designed for Vercel hosting. Its score function uses
-            Firebase Realtime Database when configured; the alternative bundled
-            Node server stores scores in files. The game loads the CrazyGames
-            SDK, which may provide platform integration, cloud saves and ads
-            where available. Those services may process information under their
-            own policies. Google Analytics policies are available at
-            policies.google.com/privacy and CrazyGames policies at
-            crazygames.com/privacy-policy. We do not claim control over
-            third-party processing.
-          </p>
-        </section>
-        <section>
-          <h2>Retention, requests and children</h2>
-          <p>
-            Local saves remain until cleared. The current score service retains
-            up to 5,000 ranked entries; operational retention depends on the
-            hosting configuration. Email
-            <a href="mailto:contact@vectofly.com">contact@vectofly.com</a> with
-            your pilot nickname and approximate score for access, correction or
-            removal requests. Do not email passwords or private keys. Rights
-            depend on applicable law; identity verification may be necessary.
-            This is a general-audience game. A parent or guardian may contact us
-            about information supplied by a child. No online service can
-            guarantee complete security.
-          </p>
-        </section>
-      </main>
-      <footer>
-        <nav aria-label="Site navigation">
-          <a href="./">Play</a> · <a href="leaderboard.html">Leaderboard</a> ·
-          <a href="how-to-play.html">How to play</a> ·
-          <a href="about.html">About</a> · <a href="contact.html">Contact</a> ·
-          <a href="privacy.html">Privacy</a> · <a href="terms.html">Terms</a> ·
-          <a href="cookie-policy.html">Cookies</a> ·
-          <a href="disclaimer.html">Disclaimer</a> ·
-          <a href="dmca.html">Copyright</a>
+      <header class="site-header">
+        <a class="brand" href="./" aria-label="VectoFly home"
+          ><span class="brand-mark">↗</span
+          ><span>VectoFly<small>ENDLESS SKIES</small></span></a
+        >
+        <nav class="primary-nav" aria-label="Main navigation">
+          <a href="./">Play</a><a href="leaderboard.html">Leaderboard</a
+          ><a href="how-to-play.html">How to play</a
+          ><a href="about.html">About</a><a href="contact.html">Contact</a>
         </nav>
-        <p>
-          VectoFly ·
-          <a href="mailto:contact@vectofly.com">contact@vectofly.com</a> · ©
-          2026
-        </p>
+        <a class="play-link" href="./"
+          >Let’s fly <span aria-hidden="true">↗</span></a
+        >
+      </header>
+      <div class="page-hero">
+        <div class="hero-copy">
+          <p class="eyebrow">TRUST & TRANSPARENCY</p>
+          <p class="hero-heading">Your privacy, clearly explained.</p>
+          <p class="hero-description">
+            What stays on your device, what is shared, and the choices you have.
+          </p>
+        </div>
+        <div class="hero-art">
+          <svg viewBox="0 0 300 180" fill="none" aria-hidden="true">
+            <ellipse
+              cx="148"
+              cy="155"
+              rx="91"
+              ry="8"
+              fill="#59332e"
+              opacity=".09"
+            />
+            <path d="M53 91L215 67L239 93L111 116Z" fill="#f25346" />
+            <path d="M53 91L111 116L101 85Z" fill="#cc433b" />
+            <path d="M104 87L148 34L180 33L157 80Z" fill="#ff8772" />
+            <path d="M113 102L182 138L212 131L156 94Z" fill="#ef6d5c" />
+            <path d="M57 91L34 55L59 57L86 85Z" fill="#f25346" />
+            <path d="M215 67L239 93L249 81L237 65Z" fill="#59332e" />
+            <path
+              d="M243 48L243 115"
+              stroke="#59332e"
+              stroke-width="4"
+              stroke-linecap="round"
+            />
+            <path d="M139 76L161 71L158 59L142 61Z" fill="#59332e" />
+            <path
+              d="M105 86L203 72"
+              stroke="#fff4dd"
+              stroke-opacity=".6"
+              stroke-width="3"
+            />
+          </svg>
+        </div>
+      </div>
+      <div class="content-layout">
+        <aside class="page-sidebar">
+          <p class="eyebrow">ON THIS PAGE</p>
+          <nav aria-label="On this page">
+            <a href="#section-1"><span>01</span>Information on your device</a
+            ><a href="#section-2"
+              ><span>02</span>Global leaderboard and security</a
+            ><a href="#section-3"><span>03</span>Optional Google Analytics</a
+            ><a href="#section-4"><span>04</span>Other providers</a
+            ><a href="#section-5"
+              ><span>05</span>Retention, requests and children</a
+            >
+          </nav>
+          <div class="support-card">
+            <span aria-hidden="true">↗</span>
+            <h2>Need a hand?</h2>
+            <p>Questions, ideas, or a bumpy flight?</p>
+            <a href="contact.html">Talk to us →</a>
+          </div>
+        </aside>
+        <main id="page-content" class="content-card">
+          <h1>Privacy Policy</h1>
+          <p class="updated">Updated 31 October 2026</p>
+          <section id="section-1">
+            <h2>Information on your device</h2>
+            <p>
+              VectoFly stores your pilot name, device-generated player ID, best
+              scores, wallet, purchased unlocks, selected aircraft and map, and
+              settings in browser local storage. Clearing browser data can
+              remove this progress. No account or password is required.
+            </p>
+          </section>
+          <section id="section-2">
+            <h2>Global leaderboard and security</h2>
+            <p>
+              When the score service is available, your chosen pilot name, best
+              score, distance, level, aircraft, difficulty and submission time
+              are stored by the leaderboard service. Pilot names and best scores
+              are public. A hashed player key identifies your entry publicly;
+              your device ID is sent to the score server. Choose a nickname, not
+              a real name or email. The service also counts devices and game
+              starts and uses signed run tickets and rate limits to reduce
+              abuse. Hosting providers receive connection information such as IP
+              addresses and browser request metadata.
+            </p>
+          </section>
+          <section id="section-3">
+            <h2>Optional Google Analytics</h2>
+            <p>
+              Only after you allow analytics, Google Analytics 4 (G-LXSLC7ZVNW)
+              measures page views, game starts and ends, selections and
+              leaderboard visits. Google may process cookies, device and browser
+              information, approximate location and usage data. We do not send
+              pilot names, email addresses or player IDs as custom analytics
+              events. Advertising personalization and Google signals are
+              disabled in our configuration. Use Analytics preferences to change
+              your choice; declining stops future loading after reload but does
+              not delete previously collected data or existing Google cookies.
+              You can clear those through browser settings.
+            </p>
+          </section>
+          <section id="section-4">
+            <h2>Other providers</h2>
+            <p>
+              The website is designed for Vercel hosting. Its score function
+              uses Firebase Realtime Database when configured; the alternative
+              bundled Node server stores scores in files. The game loads the
+              CrazyGames SDK, which may provide platform integration, cloud
+              saves and ads where available. Those services may process
+              information under their own policies. Google Analytics policies
+              are available at policies.google.com/privacy and CrazyGames
+              policies at crazygames.com/privacy-policy. We do not claim control
+              over third-party processing.
+            </p>
+          </section>
+          <section id="section-5">
+            <h2>Retention, requests and children</h2>
+            <p>
+              Local saves remain until cleared. The current score service
+              retains up to 5,000 ranked entries; operational retention depends
+              on the hosting configuration. Email
+              <a href="mailto:contact@vectofly.com">contact@vectofly.com</a>
+              with your pilot nickname and approximate score for access,
+              correction or removal requests. Do not email passwords or private
+              keys. Rights depend on applicable law; identity verification may
+              be necessary. This is a general-audience game. A parent or
+              guardian may contact us about information supplied by a child. No
+              online service can guarantee complete security.
+            </p>
+          </section>
+        </main>
+      </div>
+      <footer class="site-footer">
+        <div>
+          <a class="brand footer-brand" href="./"
+            >VectoFly<span aria-hidden="true">↗</span></a
+          >
+          <p>A little plane. An endless adventure.</p>
+          <a href="mailto:contact@vectofly.com">contact@vectofly.com</a>
+        </div>
+        <div>
+          <nav aria-label="Policies">
+            <a href="privacy.html" aria-current="page">Privacy</a
+            ><a href="terms.html">Terms</a
+            ><a href="cookie-policy.html">Cookies</a
+            ><a href="disclaimer.html">Disclaimer</a
+            ><a href="dmca.html">Copyright</a>
+          </nav>
+          <p>© 2026 VectoFly · Made for the joy of flight.</p>
+        </div>
       </footer>
     </div>
   </body>
