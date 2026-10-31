@@ -3,24 +3,16 @@ var VF = (function(){
   var $ = function(i){ return document.getElementById(i); };
   var KEY = 'vectofly_save_v1', OLD_KEY = 'flyaero_save_v1';
   var CFG = window.VECTOFLY_CONFIG || {};
-  var S = {name:'', uid:'', gbest:0, hi:0, coins:0, dist:0, games:0, bestLevel:1, music:true, sfx:true, vib:true, btns:true, hint:false, board:[], gk:'', diff:'easy', wallet:-1, plane:'classic', planes:['classic'], skin:'default', skins:['default'], map:'coast', maps:['coast']};
+  var S = {name:'', uid:'', gbest:0, hi:0, coins:0, dist:0, games:0, bestLevel:1, music:true, sfx:true, vib:true, btns:true, hint:false, board:[], gk:'', diff:'hard', wallet:-1, plane:'classic', planes:['classic'], skin:'default', skins:['default'], map:'coast', maps:['coast']};
   // Targets for the local board so it is never empty. They are clearly labelled bots, not real players.
   var BOTS = [{n:'Ace (bot)',s:9000,b:1},{n:'Maverick (bot)',s:5000,b:1},{n:'Skylark (bot)',s:2500,b:1},{n:'Rookie (bot)',s:800,b:1}];
   var shake = 0, lastWarn = 0, mode = 'menu', lastEarned = 0, F = {paused:false}, cg = null, muted = false, runCoins = 0, newBest = false, lastBoard = 0, frameN = 0, legit = 0, playMs = 0, cheated = false, ticket = null;
 
   // ---------- SAVE (localStorage + CrazyGames cloud data) ----------
-  function grantFree(){
-    if (!PLANES || !MAPS) return;
-    [['planes',PLANES,5],['maps',MAPS,4]].forEach(function(g){
-      if (!Array.isArray(S[g[0]])) S[g[0]]=[];
-      g[1].slice(0,g[2]).forEach(function(it){ if(S[g[0]].indexOf(it.id)<0) S[g[0]].push(it.id); });
-    });
-  }
-  function merge(o){ if (o && typeof o === 'object' && (o.games||0) >= S.games){ for (var k in S) if (o[k] !== undefined) S[k] = o[k]; } grantFree(); }
+  function merge(o){ if (o && typeof o === 'object' && (o.games||0) >= S.games){ for (var k in S) if (o[k] !== undefined) S[k] = o[k]; } }
   function load(){
-    var current = null;
-    try { current = JSON.parse(localStorage.getItem(KEY)); merge(current); } catch(e){}
-    if (!current){ try { merge(JSON.parse(localStorage.getItem(OLD_KEY))); } catch(e){} }   // keep progress from the FlyAero days
+    try { merge(JSON.parse(localStorage.getItem(KEY))); } catch(e){}
+    if (!S.games){ try { merge(JSON.parse(localStorage.getItem(OLD_KEY))); } catch(e){} }   // keep progress from the FlyAero days
   }
   function save(){
     var j = JSON.stringify(S);
@@ -126,7 +118,7 @@ var VF = (function(){
     if (!gOn() || G.state === 'loading') return;
     if (!force && G.list && Date.now() - G.at < 8000) return;
     G.state = 'loading'; if (!G.list) paintBoard();
-    var top = 50, fb = mode_() === 'fb', bust = fb ? '' : '&_=' + Date.now();   // cache-buster: every device always sees fresh scores
+    var top = CFG.SHOW_TOP || 20, fb = mode_() === 'fb', bust = fb ? '' : '&_=' + Date.now();   // cache-buster: every device always sees fresh scores
     var url = fb ? gUrl('') + '?orderBy=%22s%22&limitToLast=' + top + bust : apiBase() + '/api/scores?limit=' + top + bust;
     withTimeout(fetch(url, {cache:'no-store'}), 9000)
       .then(function(r){ if (!r.ok){ var er = new Error('http ' + r.status); er.status = r.status; return r.text().then(function(t){ try { er.hint = (JSON.parse(t) || {}).hint || ''; } catch(x){} throw er; }); } return r.json(); })
@@ -219,7 +211,7 @@ var VF = (function(){
     var list, msg = '';
     if (gOn()){
       if (G.list){
-        list = G.list.slice(0,50).map(function(x,i){ return {r:i+1, n:x.n, s:x.s, you:!!myKey() && x.k === myKey()}; });
+        list = G.list.slice(0,8).map(function(x,i){ return {r:i+1, n:x.n, s:x.s, you:!!myKey() && x.k === myKey()}; });
         if (!list.length) msg = 'No scores yet - be the first!';
         else if (S.uid && S.gbest && !G.list.some(function(x){ return myKey() && x.k === myKey(); })) msg = 'Your world best: ' + S.gbest;
         if (G.state === 'err') msg = 'Offline - showing the last scores we got.';
@@ -235,10 +227,12 @@ var VF = (function(){
     var vc = $('visitors'); if (vc){ vc.style.display = (gOn() && G.visitors >= 0) ? 'flex' : 'none'; vc.innerHTML = '<span class="vdot"></span><span><b>' + G.visitors.toLocaleString() + '</b> ' + (G.visitors === 1 ? 'pilot' : 'pilots') + '</span><span class="vsep"></span><span><b>' + G.games.toLocaleString() + '</b> ' + (G.games === 1 ? 'game' : 'games') + ' played</span>'; }
   }
   function drawLive(){
-    var list = (gOn() && G.list) ? G.list.slice(0,50).map(function(x,i){return {r:i+1,n:x.n,s:x.s,you:!!myKey() && x.k===myKey()};}) : [];
-    var h = document.querySelector('#live .lh'); if(h) h.textContent='World · Top 50';
-    fill($('liveList'), list);
-
+    var cur = {n:S.name||'You', s:F.score(), you:1}, list = all().concat([cur]).sort(function(a,b){ return b.s-a.s || (b.you?1:-1); });
+    list.forEach(function(x,i){ x.r = i+1; });
+    var me = list.indexOf(cur), shown = list.slice(0,5);
+    if (me >= 5) shown = list.slice(0,4).concat([cur]);
+    var h = document.querySelector('#live .lh'); if (h) h.textContent = (gOn() && G.list) ? 'World Leaderboard' : 'Live Leaderboard';
+    fill($('liveList'), shown);
   }
 
   // ---------- PANEL (menu + game over) ----------
@@ -256,8 +250,8 @@ var VF = (function(){
     $('nameIn').value = S.name || $('nameIn').value;
     paintBoard(); gFetch(false);
     $('stats').textContent = 'Best ' + S.hi + '  |  Pills ' + S.coins + '  |  Flights ' + S.games + '  |  Top level ' + S.bestLevel;
-    $('optMusic').checked = S.music; $('optSfx').checked = S.sfx; $('optVib').checked = S.vib !== false;
-
+    $('optMusic').checked = S.music; $('optSfx').checked = S.sfx; $('optVib').checked = S.vib !== false; $('optBtns').checked = S.btns !== false;
+    document.body.classList.toggle('nobtns', S.btns === false);
     $('panel').className = '';
   }
   var starting = false;
@@ -276,7 +270,7 @@ var VF = (function(){
       $('panel').className = 'hide'; runCoins = 0; newBest = false; legit = 0; playMs = 0; cheated = false;
       document.body.classList.add('playing'); G.sub = '';
       if (F.touching && !S.hint){ S.hint = true; save(); setTimeout(function(){ toast('Slide a thumb anywhere to steer', '#fff6e2'); }, 600); }
-      startGame(); gStart(); if(window.vfTrack) vfTrack('game_start',{difficulty:S.diff,aircraft:S.plane,map:S.map});
+      startGame(); gStart();
       try { musicStart(); if (AC && engineG) engineG.gain.setTargetAtTime(.06, AC.currentTime, .3); } catch(e){}
       try { if (cg) cg.game.gameplayStart(); } catch(e){}
     };
@@ -508,7 +502,7 @@ var VF = (function(){
     var items = tab==='planes' ? PLANES : tab==='skins' ? SKINS : MAPS;
     var key = tab==='planes' ? 'plane' : tab==='skins' ? 'skin' : 'map', ownKey = key + 's';
     var curSkin = skin(), curPlane = plane();
-    items.forEach(function(it,index){
+    items.forEach(function(it){
       var c = h('div', 'card' + (S[key]===it.id ? ' sel' : '')), sw = h('div','sw');
       if (tab==='maps'){
         sw.style.background = 'linear-gradient('+it.pal[0][0]+','+it.pal[0][1]+' 58%,'+it.sea+' 58%)';
@@ -523,15 +517,13 @@ var VF = (function(){
         }
       }
       c.appendChild(sw); c.appendChild(h('b','',it.n)); if (it.d) c.appendChild(h('div','d',it.d));
-      var free = (tab==='planes' && index<5) || (tab==='maps' && index<4);
-      c.appendChild(h('div','availability',free?'Free':S[ownKey].indexOf(it.id)>-1?'Unlocked':'Locked · '+it.p+' coins'));
       var owned = S[ownKey].indexOf(it.id) > -1, b;
       if (owned){
         b = h('button','', S[key]===it.id ? 'Selected' : 'Select'); b.disabled = S[key]===it.id;
-        b.onclick = function(){ S[key] = it.id; if(window.vfTrack) vfTrack(tab==='maps'?'map_select':'aircraft_select',{item_id:it.id}); dirty = true; save(); drawShop(); };
+        b.onclick = function(){ S[key] = it.id; dirty = true; save(); drawShop(); };
       } else if (S.wallet >= it.p){
         b = h('button','','Buy ' + it.p);
-        b.onclick = function(){ S.wallet -= it.p; S[ownKey].push(it.id); S[key] = it.id; if(window.vfTrack) vfTrack(tab==='maps'?'map_select':'aircraft_select',{item_id:it.id}); dirty = true; save(); drawShop(); };
+        b.onclick = function(){ S.wallet -= it.p; S[ownKey].push(it.id); S[key] = it.id; dirty = true; save(); drawShop(); };
       } else { b = h('button','','Need ' + it.p); b.disabled = true; }
       c.appendChild(b); g.appendChild(c);
     });
@@ -558,7 +550,7 @@ var VF = (function(){
   F.onFuel = function(){ sfx('fuel'); toast('+FUEL','#f4a63a'); };
   F.onLevel = function(l){ sfx('level'); toast('LEVEL ' + l,'#68c3c0'); };
   F.onGameOver = function(){
-    var sc = F.score(); if(window.vfTrack) vfTrack('game_end',{score:sc,difficulty:S.diff}); sfx('over'); buzz([70,40,120]);
+    var sc = F.score(); sfx('over'); buzz([70,40,120]);
     if (cheated){ lastEarned = 0; newBest = false; if (engineG) engineG.gain.setTargetAtTime(0, AC.currentTime, .2); save(); try { if (cg) cg.game.gameplayStop(); } catch(e){} return; }
     lastEarned = Math.floor((runCoins*(plane().coin||1) + sc/200) * diff().mult); S.wallet += lastEarned;
     if (engineG) engineG.gain.setTargetAtTime(0, AC.currentTime, .2);
@@ -602,7 +594,7 @@ var VF = (function(){
     if (game.damage > 70 && Date.now()-lastWarn > 1100){ lastWarn = Date.now(); sfx('warn'); }
     else if (game.fuel < 30 && Date.now()-lastWarn > 1100){ lastWarn = Date.now(); sfx('warn'); }
     // keyboard steering (arrows / WASD) feeds the same mousePos the mouse uses
-    var dx = (keys[39]||keys[68]?1:0)-(keys[37]||keys[65]?1:0), dy = (keys[38]||keys[87]?1:0)-(keys[40]||keys[83]?1:0);
+    var dx = (keys[39]||keys[68]||pad.r?1:0)-(keys[37]||keys[65]||pad.l?1:0), dy = (keys[38]||keys[87]||pad.u?1:0)-(keys[40]||keys[83]||pad.d?1:0);
     // time based (same speed at 30 or 120 fps) and it speeds up the longer you hold: precise taps, fast sweeps
     var dtS = Math.min(deltaTime, 50)/1000;
     if (dx||dy){ held += dtS; var ramp = 1 + Math.min(held, .5)/.5; mousePos = {x:Math.max(-1,Math.min(1,mousePos.x+dx*1.8*ramp*dtS)), y:Math.max(-1,Math.min(1,mousePos.y+dy*2.2*ramp*dtS))}; } else held = 0;
@@ -611,9 +603,22 @@ var VF = (function(){
   };
 
   // ---------- INPUT / LIFECYCLE ----------
-  var keys = {}, held = 0;
+  var keys = {}, pad = {u:0,d:0,l:0,r:0}, held = 0;
   F.touching = false;
-  F.padHeld = function(){ return false; };
+  F.padHeld = function(){ return !!(pad.u || pad.d || pad.l || pad.r); };
+  function initPad(){
+    var el = $('ctl'); if (!el) return;
+    var btns = el.querySelectorAll('button[data-k]');
+    Array.prototype.forEach.call(btns, function(b){
+      var k = b.getAttribute('data-k'), ids = {};
+      function on(e){ e.preventDefault(); ids[e.pointerId] = 1; pad[k] = 1; b.classList.add('down'); try { b.setPointerCapture(e.pointerId); } catch(x){} }
+      function off(e){ delete ids[e.pointerId]; if (!Object.keys(ids).length){ pad[k] = 0; b.classList.remove('down'); } }
+      b.addEventListener('pointerdown', on);
+      b.addEventListener('pointerup', off); b.addEventListener('pointercancel', off); b.addEventListener('lostpointercapture', off);
+      b.addEventListener('contextmenu', function(e){ e.preventDefault(); });
+    });
+    window.addEventListener('blur', function(){ pad.u = pad.d = pad.l = pad.r = 0; Array.prototype.forEach.call(btns, function(b){ b.classList.remove('down'); }); });
+  }
   function setPause(p){
     F.paused = p && game.status === 'playing';   // menus and shops are never paused
     muted = p; apply();
@@ -622,21 +627,20 @@ var VF = (function(){
     if (F.paused) toast('PAUSED - tap to resume','#fff6e2');
   }
   function init(){
-    load(); grantFree(); save(); if (S.wallet < 0) S.wallet = S.coins; drawPanel('menu'); sdkInit(); drawLive(); gVisit();
+    load(); if (S.wallet < 0) S.wallet = S.coins; drawPanel('menu'); sdkInit(); drawLive(); initPad(); gVisit();
     // keep the world board fresh on every device: poll while the page is visible, refresh the moment you come back
     setInterval(function(){ if (!document.hidden) gFetch(true); }, 10000);
     document.addEventListener('visibilitychange', function(){ if (!document.hidden) gFetch(true); });
     window.addEventListener('online', function(){ G.dead = false; gFetch(true); });
     window.addEventListener('focus', function(){ gFetch(true); });
     $('playBtn').onclick = begin;
-    $('pauseBtn').onclick = function(){setPause(!F.paused);};
     $('hangarBtn').onclick = function(){ openShop('planes'); };
     $('mapsBtn').onclick = function(){ openShop('maps'); };
     $('backBtn').onclick = closeShop;
     $('optMusic').onchange = function(){ S.music = this.checked; apply(); save(); };
     $('optSfx').onchange = function(){ S.sfx = this.checked; apply(); save(); };
     $('optVib').onchange = function(){ S.vib = this.checked; save(); if (S.vib) buzz(30); };
-
+    $('optBtns').onchange = function(){ S.btns = this.checked; document.body.classList.toggle('nobtns', !S.btns); save(); };
     if (!navigator.vibrate) $('vibLbl').style.display = 'none';
     $('soundBtn').onclick = function(){ var on = !(S.music||S.sfx); S.music = S.sfx = on; apply(); save(); $('optMusic').checked = $('optSfx').checked = on; };
     document.addEventListener('keydown', function(e){
@@ -656,7 +660,7 @@ var VF = (function(){
     document.addEventListener('keyup', function(e){ keys[e.keyCode] = 0; if (e.keyCode===32 && e.target && e.target.id==='playBtn') e.preventDefault(); });
     document.addEventListener('visibilitychange', function(){ if (document.hidden) setPause(true); else if (!F.paused) setPause(false); });
     window.addEventListener('pageshow', function(){ if (!F.paused) setPause(false); });
-    window.addEventListener('blur', function(){ keys={}; held=0; if (game.status==='playing') setPause(true); });
+    window.addEventListener('blur', function(){ if (game.status==='playing') setPause(true); });
     window.addEventListener('focus', function(){ if (!document.hidden && !F.paused) setPause(false); });  // a paused game waits for a tap
     document.addEventListener('mousedown', function(e){ if (F.paused && e.target.tagName==='CANVAS') setPause(false); });
     document.addEventListener('touchstart', function(e){ if (F.paused && e.target.tagName==='CANVAS') setPause(false); }, false);

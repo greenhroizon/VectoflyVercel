@@ -118,7 +118,7 @@ async function topScores(limit) {
   const r = await fb('GET', '/scores', { query: { orderBy: '"s"', limitToLast: String(limit) } });
   const o = r.data || {};
   return Object.keys(o).map(id => ({ id, n: o[id].n, s: o[id].s, t: o[id].t || 0 })).filter(e => typeof e.s === 'number')
-    .sort((a, b) => b.s - a.s || a.t - b.t || a.id.localeCompare(b.id));
+    .sort((a, b) => b.s - a.s || a.t - b.t);
 }
 async function stats() { const m = (await fb('GET', '/meta')).data || {}; return { visitors: +m.visitors || 0, games: +m.games || 0 }; }
 async function prune() {          // forget old single-use tickets so the database stays tiny
@@ -153,11 +153,9 @@ module.exports = async function handler(req, res) {
         try { await fb('PUT', '/debug', { body: Date.now() }); } catch (e) { write = 'failed: ' + String(e && e.message || e).slice(0, 200); }
         return send(res, 200, { ok: read === 'ok' && write === 'ok', mode: 'firebase', auth: FB_SECRET ? 'database secret' : 'service account', read, write, playersStored: count, database: DB.replace(/^https?:\/\//, '') });
       }
-      const limit = Math.max(1, Math.min(100, Math.floor(+(req.query && req.query.limit) || 50)));
-      const offset = Math.max(0, Math.min(MAX_ENTRIES, Math.floor(+(req.query && req.query.offset) || 0)));
-      // Read the retained board before slicing: tie order and global ranks are stable across pages.
-      const [list, st] = await Promise.all([topScores(MAX_ENTRIES), stats()]);
-      return send(res, 200, { scores: list.slice(offset, offset+limit).map((e,i) => ({ n: String(e.n || 'Pilot').slice(0, 12), s: e.s, k: pub(e.id), r:offset+i+1 })), total:list.length, hasMore:offset+limit<list.length, visitors: st.visitors, games: st.games, at: Date.now() });
+      const limit = Math.max(1, Math.min(100, +(req.query && req.query.limit) || 50));
+      const [list, st] = await Promise.all([topScores(limit), stats()]);
+      return send(res, 200, { scores: list.slice(0, limit).map(e => ({ n: String(e.n || 'Pilot').slice(0, 12), s: e.s, k: pub(e.id) })), visitors: st.visitors, games: st.games, at: Date.now() });
     }
 
     if (req.method !== 'POST') return send(res, 405, { error: 'method' });
@@ -221,7 +219,7 @@ module.exports = async function handler(req, res) {
     }
     if (Math.random() < .03) { try { await prune(); } catch (e) {} }
     let rank = null;
-    try { const top = await topScores(MAX_ENTRIES); const i = top.findIndex(e => e.id === id); if (i > -1) rank = i + 1; } catch (e) {}
+    try { const top = await topScores(100); const i = top.findIndex(e => e.id === id); if (i > -1) rank = i + 1; } catch (e) {}
     return send(res, 200, { ok: true, rank, best, k: pub(id) });
   } catch (e) {
     console.error('VectoFly API error:', e && e.message ? e.message : e);

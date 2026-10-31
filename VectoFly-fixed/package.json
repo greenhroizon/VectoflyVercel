@@ -5,10 +5,5 @@
   "description": "VectoFly - endless 3D plane game",
   "engines": {
     "node": ">=18"
-  },
-  "scripts": {
-    "start": "node server/server.js",
-    "test": "node --test tests/*.test.cjs",
-    "test:browser": "node tests/browser.cjs"
   }
 }

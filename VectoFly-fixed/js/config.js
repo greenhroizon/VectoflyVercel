@@ -19,5 +19,5 @@ window.VECTOFLY_CONFIG = {
   API_URL: '',
   FIREBASE_URL: '',
   BOARD_PATH: 'scores',   // folder name inside the Firebase database
-  SHOW_TOP: 50
+  SHOW_TOP: 20
 };

@@ -39,7 +39,7 @@ setInterval(flush, 2000).unref();
 process.on('SIGINT', () => { dirty = true; try { fs.mkdirSync(path.dirname(DATA_FILE), { recursive: true }); fs.writeFileSync(DATA_FILE, JSON.stringify(scores)); } catch (e) {} process.exit(0); });
 process.on('SIGTERM', () => process.emit('SIGINT'));
 
-function sorted() { return Object.keys(scores).map(id => ({ id, ...scores[id] })).sort((a, b) => b.s - a.s || a.t - b.t || a.id.localeCompare(b.id)); }
+function sorted() { return Object.keys(scores).map(id => ({ id, ...scores[id] })).sort((a, b) => b.s - a.s || a.t - b.t); }
 function trim() {
   const ids = Object.keys(scores);
   if (ids.length <= MAX_ENTRIES) return;
@@ -75,10 +75,8 @@ function cleanName(n) {
 function api(req, res, url) {
   if (req.method === 'OPTIONS') return send(res, 204, '');
   if (req.method === 'GET') {
-    const limit = Math.max(1, Math.min(100, Math.floor(+url.searchParams.get('limit') || 50)));
-    const offset = Math.max(0, Math.min(MAX_ENTRIES, Math.floor(+url.searchParams.get('offset') || 0)));
-    const list = sorted();
-    return send(res, 200, { scores:list.slice(offset,offset+limit).map((e,i)=>({n:e.n,s:e.s,k:pub(e.id),r:offset+i+1})),total:list.length,hasMore:offset+limit<list.length,visitors:visitors.size,games });
+    const limit = Math.max(1, Math.min(100, +url.searchParams.get('limit') || 50));
+    return send(res, 200, { scores: sorted().slice(0, limit).map(e => ({ n: e.n, s: e.s, k: pub(e.id) })), visitors: visitors.size, games });
   }
   if (req.method !== 'POST') return send(res, 405, { error: 'method' });
   let raw = '';

@@ -107,7 +107,7 @@ function createScene() {
     );
   scene.fog = new THREE.Fog(0xf7d9aa, 220, 1150);
   camera.position.x = 0;
-  camera.position.z = 320;
+  camera.position.z = 200;
   camera.position.y = game.planeDefaultHeight;
 
   try { renderer = new THREE.WebGLRenderer({ alpha: true, antialias: !isMobile }); }
@@ -115,13 +115,11 @@ function createScene() {
   renderer.setPixelRatio(Math.min(window.devicePixelRatio||1, isMobile?1.5:2));
   renderer.setSize(WIDTH, HEIGHT);
 
-  renderer.shadowMap.enabled = !isMobile;
+  renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;   // soft shadow edges
 
   container = document.getElementById('world');
   container.appendChild(renderer.domElement);
-  handleWindowResize();
-  renderer.domElement.addEventListener('webglcontextlost',function(e){ e.preventDefault(); if(window.VF) VF.paused=true; document.getElementById('toast').textContent='Graphics interrupted. Reload to recover; saved progress is safe.'; document.getElementById('toast').style.opacity=1; });
 
   window.addEventListener('resize', handleWindowResize, false);
   window.addEventListener('orientationchange', function(){ setTimeout(handleWindowResize,300); }, false);
@@ -134,13 +132,7 @@ function handleWindowResize() {
   WIDTH = window.innerWidth;
   renderer.setSize(WIDTH, HEIGHT);
   aspectRatio = camera.aspect = WIDTH / HEIGHT;
-  // Preserve the entire flight band and enough horizontal preview on portrait devices.
-  camera.fov = 50;
-  camera.position.z = Math.max(120, 140 / aspectRatio) / Math.tan(25*Math.PI/180);
-  camera.position.y = 100;
   camera.updateProjectionMatrix();
-  SPAWN_X = Math.max(180, camera.position.z*Math.tan(25*Math.PI/180)*aspectRatio + 35);
-  steer = null;
 }
 
 // ---------- INPUT ----------
@@ -148,7 +140,7 @@ function handleWindowResize() {
 // Touch: RELATIVE drag. Put a thumb anywhere and slide: the plane moves by the amount you slide, so your thumb never hides the plane,
 // there is no jump when you touch down, and a small thumb movement covers the whole height. Hold the on-screen buttons for fine moves.
 var lastTouchT = 0, steer = null;
-function onPad(t){ return !!(t && t.closest && t.closest('button,input,a,#panel,#shop,#live,#analytics-choice')); }
+function onPad(t){ return !!(t && t.closest && t.closest('#ctl')); }
 function clamp1(v){ return Math.max(-1, Math.min(1, v)); }
 
 function handleMouseMove(event) {
@@ -162,7 +154,7 @@ function handleMouseMove(event) {
 
 function handleTouchStart(e){
   lastTouchT = Date.now(); if (window.VF) VF.touching = true;
-  if (game.status!="playing" || steer || onPad(e.target)) return;
+  if (game.status!="playing" || steer) return;
   for (var i=0;i<e.changedTouches.length;i++){
     var t = e.changedTouches[i];
     if (!onPad(t.target)){ steer = {id:t.identifier, px:t.clientX, py:t.clientY, mx:mousePos.x, my:mousePos.y}; break; }
@@ -171,7 +163,7 @@ function handleTouchStart(e){
 
 function handleTouchMove(e){
   lastTouchT = Date.now();
-  if (game.status!="playing" || !steer) return;
+  if (game.status!="playing") return;
   e.preventDefault();                                   // no scrolling / pull-to-refresh while flying
   if (!steer) return;
   var t = null;
@@ -353,7 +345,7 @@ EnnemiesHolder = function (){
 EnnemiesHolder.prototype.add = function(x, y, seek){
   var ennemy = ennemiesPool.length ? ennemiesPool.pop() : new Ennemy();
   ennemy.setKind(!!seek);
-  ennemy.prevX=x; ennemy.prevY=y; ennemy.x = x; ennemy.y = y; ennemy.y0 = y;
+  ennemy.x = x; ennemy.y = y; ennemy.y0 = y;
   ennemy.mesh.position.set(x, y, 0);
   this.mesh.add(ennemy.mesh);
   this.ennemiesInUse.push(ennemy);
@@ -375,17 +367,30 @@ EnnemiesHolder.prototype.spawnSeekers = function(n){
 //   comb    = every other lane blocked, fly through the gaps           seeker = homing spikes
 EnnemiesHolder.prototype.spawnEnnemies = function(){
   game.waveN++;
-  // A continuous two-lane corridor; adjacent waves move it by at most one lane.
-  // No seekers or bobbing spikes may cross this protected corridor.
-  var step = Math.random()<.5 ? -1 : 1;
-  game.safeLane = Math.max(1,Math.min(5,game.safeLane + (game.waveN%3===0?step:0)));
-  var gapY = laneY(game.safeLane), halfGap = game.level<4 ? 36 : 30;
-  for(var lane=0;lane<LANES;lane++){
-    if(Math.abs(laneY(lane)-gapY)<halfGap) continue;
-    if(game.waveN%3===1 && lane%2===0) continue;
-    this.add(SPAWN_X,laneY(lane),false);
+  var lvl = game.level;
+  if (game.forceSeek || game.waveN % (lvl < 3 ? 4 : 3) === 0){
+    game.forceSeek = false; game.idleMs = 0;
+    this.spawnSeekers(lvl >= 6 && Math.random() < .5 ? 2 : 1);
+    return;
   }
-
+  var step = game.distanceForEnnemiesSpawn < 38 ? 1 : 2;
+  var s = clampLane(game.safeLane + Math.floor(Math.random()*(step*2+1)) - step);
+  game.safeLane = s;
+  var r = Math.random(), kind = 'scatter', i, lane;
+  if (lvl >= 2) kind = r < .3 ? 'wall' : (r < .5 && s%2===1) ? 'comb' : 'scatter';
+  if (kind === 'wall'){
+    var gate2 = lvl < 5 ? (s < LANES-1 ? s+1 : s-1) : -1;            // early on the gate is two lanes wide
+    for (lane=0; lane<LANES; lane++){ if (lane!==s && lane!==gate2) this.add(SPAWN_X, laneY(lane), false); }
+  } else if (kind === 'comb'){
+    for (lane=0; lane<LANES; lane+=2) this.add(SPAWN_X, laneY(lane), false);
+  } else {
+    var n = Math.min(3 + Math.floor(lvl/2), 5);
+    for (i=0; i<n; i++){
+      do { lane = Math.floor(Math.random()*LANES); } while (lane===s);
+      var e = this.add(SPAWN_X + i*60, laneY(lane), false);
+      if (lvl >= 3 && Math.abs(lane-s) >= 2 && Math.random() < .35){ e.bob = 12 + Math.random()*8; e.ph = Math.random()*6.28; }
+    }
+  }
 }
 
 EnnemiesHolder.prototype.rotateEnnemies = function(){
@@ -408,21 +413,15 @@ EnnemiesHolder.prototype.rotateEnnemies = function(){
     ennemy.mesh.rotation.z += Math.random()*.1;
     ennemy.mesh.rotation.y += Math.random()*.1;
 
-    // Swept relative segment prevents tunnelling during slower frames, without allocations.
-    var px=airplane.mesh.position.x, py=airplane.mesh.position.y;
-    var ax=(ennemy.prevX===undefined?ennemy.x:ennemy.prevX)-(airplane.prevX===undefined?px:airplane.prevX);
-    var ay=(ennemy.prevY===undefined?ennemy.y:ennemy.prevY)-(airplane.prevY===undefined?py:airplane.prevY);
-    var bx=ennemy.x-px, by=ennemy.y-py, vx=bx-ax, vy=by-ay;
-    var t=Math.max(0,Math.min(1,-(ax*vx+ay*vy)/(vx*vx+vy*vy||1)));
-    var d=Math.sqrt(Math.pow(ax+vx*t,2)+Math.pow(ay+vy*t,2));
-    ennemy.prevX=ennemy.x; ennemy.prevY=ennemy.y;
+    var diffPos = airplane.mesh.position.clone().sub(ennemy.mesh.position);
+    var d = diffPos.length();
     if (d<game.ennemyDistanceTolerance*(ennemy.seek ? 1.15 : 1) && game.status=="playing"){
       particlesHolder.spawnParticles(ennemy.mesh.position.clone(), 15, ennemy.seek ? 0xff8a1f : Colors.red, 3);
 
       ennemiesPool.unshift(this.ennemiesInUse.splice(i,1)[0]);
       this.mesh.remove(ennemy.mesh);
-      game.planeCollisionSpeedX = -0.15;
-      game.planeCollisionSpeedY = (py >= ennemy.y ? 1 : -1)*0.18;
+      game.planeCollisionSpeedX = 100 * diffPos.x / d;
+      game.planeCollisionSpeedY = 100 * diffPos.y / d;
       ambientLight.intensity = 2;
 
       addDamage(); VF.onHit(); hitFlash();
@@ -672,14 +671,7 @@ function setPlaneModel(kind, spec, base){
   if (old){
     a.mesh.position.copy(old.position); a.mesh.rotation.copy(old.rotation);
     scene.remove(old);
-    var geometries = new Set(), materials = new Set();
-    old.traverse(function(o){
-      if(o.geometry) geometries.add(o.geometry);
-      if(o.material) (Array.isArray(o.material)?o.material:[o.material]).forEach(function(m){materials.add(m);});
-    });
-    geometries.forEach(function(g){g.dispose();});
-    // Paint textures are shared by PB's cache; release only this model's materials.
-    materials.forEach(function(m){m.dispose();});
+    old.traverse(function(o){ if (o.geometry) o.geometry.dispose(); });
   }
   scene.add(a.mesh);
   airplane = a;
@@ -727,15 +719,11 @@ function loop(){
     // endless Chrome-dino style ramp: speed grows continuously with distance
     game.targetBaseSpeed = Math.min(game.maxBaseSpeed, game.initSpeed + game.distance*game.speedPerMeter);
 
-    airplane.prevX=airplane.mesh.position.x; airplane.prevY=airplane.mesh.position.y;
     updatePlane();
     updateDistance();
     updateDamage();
     game.baseSpeed += (game.targetBaseSpeed - game.baseSpeed) * deltaTime * 0.02;
-    // Keep at least 1.4 seconds of visible reaction time, including on narrow phones.
-    var visibleRight = camera.position.z*Math.tan(25*Math.PI/180)*aspectRatio;
-    game.speed = Math.min(game.baseSpeed * game.planeSpeed, (visibleRight-airplane.mesh.position.x-30)/(1400*K_SCROLL));
-    game.distanceForEnnemiesSpawn = Math.max(game.distanceForEnnemiesSpawn, game.speed*1400*50);
+    game.speed = game.baseSpeed * game.planeSpeed;
 
   }else if(game.status=="gameover"){
     game.speed *= Math.pow(.985, deltaTime/16.7);
@@ -839,14 +827,16 @@ function updatePlane(){
   targetY += game.planeCollisionDisplacementY;
 
   var sens = game.planeMoveSensivity * ((window.VF && (VF.touching || VF.padHeld())) ? 1.8 : 1);   // touch and buttons: quicker response
-  airplane.mesh.position.y += (targetY-airplane.mesh.position.y)*(1-Math.exp(-deltaTime*sens));
-  airplane.mesh.position.x += (targetX-airplane.mesh.position.x)*(1-Math.exp(-deltaTime*sens));
+  airplane.mesh.position.y += (targetY-airplane.mesh.position.y)*deltaTime*sens;
+  airplane.mesh.position.x += (targetX-airplane.mesh.position.x)*deltaTime*sens;
 
   airplane.mesh.rotation.z = (targetY-airplane.mesh.position.y)*deltaTime*game.planeRotXSensivity;
   airplane.mesh.rotation.x = (airplane.mesh.position.y-targetY)*deltaTime*game.planeRotZSensivity;
   // a badly damaged plane shudders
   if (game.damage > 60){ var j = (game.damage-60)/40*.05; airplane.mesh.rotation.z += (Math.random()-.5)*j; airplane.mesh.rotation.x += (Math.random()-.5)*j; }
-  airplane.mesh.position.y = Math.max(20,Math.min(180,airplane.mesh.position.y));
+  camera.fov = Math.min(110, normalize(mousePos.x,-1,1,46,72) * (aspectRatio<1 ? 1+(1-aspectRatio)*.9 : 1));
+  camera.updateProjectionMatrix ()
+  camera.position.y += (airplane.mesh.position.y - camera.position.y)*deltaTime*game.cameraSensivity;
 
   game.planeCollisionSpeedX += (0-game.planeCollisionSpeedX)*deltaTime * 0.03;
   game.planeCollisionDisplacementX += (0-game.planeCollisionDisplacementX)*deltaTime *0.01;
@@ -857,7 +847,7 @@ function updatePlane(){
 
   // standing still (same height for ~2.5 s) calls in a homing spike
   if (Math.abs(airplane.mesh.position.y - game.idleY) < 7) game.idleMs += deltaTime; else { game.idleY = airplane.mesh.position.y; game.idleMs = 0; }
-  // Fair waves replace punitive idle-triggered homing attacks.
+  if (game.idleMs > 2500) game.forceSeek = true;
 }
 
 // red "!" at the right edge, at the height of an incoming homing spike that is still off screen
