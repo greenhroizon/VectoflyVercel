@@ -1,5 +1,100 @@
 /* Text for crawlers and screen readers; kept out of the way of the full-screen game. */
-.seo-content{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0,0,0,0);clip-path:inset(50%);white-space:nowrap;border:0}
-.seo-content:focus-within{position:fixed;inset:0;width:auto;height:auto;margin:0;padding:24px;overflow:auto;clip:auto;clip-path:none;white-space:normal;background:#fff;color:#222;z-index:99999;font:16px/1.6 system-ui,sans-serif}
+.seo-content {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+.seo-content:focus-within {
+  position: fixed;
+  inset: 0;
+  width: auto;
+  height: auto;
+  margin: 0;
+  padding: 24px;
+  overflow: auto;
+  clip: auto;
+  clip-path: none;
+  white-space: normal;
+  background: #fff;
+  color: #222;
+  z-index: 99999;
+  font:
+    16px/1.6 system-ui,
+    sans-serif;
+}
 
-#panel .legal{margin-top:8px;font-size:11px;opacity:.75}#panel .legal a{color:inherit;text-decoration:underline;margin:0 2px}
+#panel .legal {
+  margin-top: 8px;
+  font-size: 11px;
+  opacity: 0.75;
+}
+#panel .legal a {
+  color: inherit;
+  text-decoration: underline;
+  margin: 0 2px;
+}
+
+.page {
+  max-width: 960px;
+  margin: auto;
+  padding: 24px;
+  font:
+    17px/1.75 system-ui,
+    sans-serif;
+}
+nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  font-size: 14px;
+}
+section {
+  margin: 32px 0;
+}
+.table-wrap {
+  overflow: auto;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+th,
+td {
+  text-align: left;
+  padding: 14px;
+  border-bottom: 1px solid #d1b790;
+}
+.you {
+  background: #d9eeea;
+}
+button {
+  min-height: 44px;
+  cursor: pointer;
+}
+.pagination {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin: 24px 0;
+}
+.updated {
+  opacity: 0.7;
+}
+@media (max-width: 480px) {
+  .page {
+    padding: 16px;
+    font-size: 16px;
+  }
+  th,
+  td {
+    padding: 10px;
+  }
+}
