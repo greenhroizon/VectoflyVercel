@@ -127,7 +127,7 @@ test("smoothing and collision displacement remain within flight band", () => {
 test("important pages have canonical, contact, one analytics loader and valid local links", () => {
   for (const name of fs.readdirSync(root).filter((n) => n.endsWith(".html"))) {
     let s = fs.readFileSync(root + "/" + name, "utf8");
-    assert.equal((s.match(/src="js\/analytics.js"/g) || []).length, 1, name);
+    assert.equal((s.match(/src="\/?js\/analytics.js"/g) || []).length, 1, name);
     assert.ok(!/YOUR-DOMAIN|itsvasudev404/.test(s));
     for (const m of s.matchAll(/(?:href|src)="([^"?#]+)(?:[?#][^"]*)?"/g)) {
       const link = m[1];
@@ -147,4 +147,19 @@ test('swept collision catches a spike crossing the player in one frame without N
 test('first five free aircraft build with valid 3D geometry',()=>{
  const c=core();vm.runInContext(fs.readFileSync(root+'/js/planes.js','utf8'),c);
  for(const kind of ['paper','warbird','triplane','gyro','twinboom']){const p=c.PB.build(kind,null,'#f25346');assert.ok(p.mesh.children.length>0);assert.ok(p.pilot);assert.ok(p.propeller);p.mesh.traverse(o=>{if(o.geometry && o.geometry.vertices)for(const v of o.geometry.vertices)assert.ok(Number.isFinite(v.x)&&Number.isFinite(v.y)&&Number.isFinite(v.z));});}
+});
+
+test('supporting pages share themed navigation, unique section anchors and accessible artwork',()=>{
+ for(const slug of ['about','contact','how-to-play','leaderboard','privacy','terms','cookie-policy','disclaimer','dmca']){
+  const s=fs.readFileSync(root+'/'+slug+'.html','utf8');
+  assert.ok(s.includes('class="site-page"'),slug);
+  assert.ok(s.includes('class="site-header"'),slug);
+  assert.ok(s.includes('class="page-hero"'),slug);
+  assert.ok(s.includes('class="site-footer"'),slug);
+  assert.ok(s.includes('id="page-content"'),slug);
+  assert.ok(/<svg[^>]+aria-hidden="true"/.test(s),slug);
+  const ids=[...s.matchAll(/\sid="([^"]+)"/g)].map(m=>m[1]);
+  assert.equal(new Set(ids).size,ids.length,slug+' duplicate ID');
+  for(const m of s.matchAll(/href="#([^"]+)"/g))assert.ok(ids.includes(m[1]),slug+' missing anchor '+m[1]);
+ }
 });

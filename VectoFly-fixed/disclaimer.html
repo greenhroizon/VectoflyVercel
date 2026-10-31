@@ -13,62 +13,126 @@
     <link rel="stylesheet" href="css/seo.css" />
     <script defer src="js/analytics.js"></script>
   </head>
-  <body>
+  <body class="site-page">
+    <a class="skip-link" href="#page-content">Skip to content</a>
     <div class="page">
-      <nav aria-label="Site navigation">
-        <a href="./">Play</a> · <a href="leaderboard.html">Leaderboard</a> ·
-        <a href="how-to-play.html">How to play</a> ·
-        <a href="about.html">About</a> · <a href="contact.html">Contact</a> ·
-        <a href="privacy.html">Privacy</a> · <a href="terms.html">Terms</a> ·
-        <a href="cookie-policy.html">Cookies</a> ·
-        <a href="disclaimer.html">Disclaimer</a> ·
-        <a href="dmca.html">Copyright</a>
-      </nav>
-      <main>
-        <h1>Disclaimer</h1>
-        <p class="updated">Updated 31 October 2026</p>
-        <section>
-          <h2>Game and service limitations</h2>
-          <p>
-            VectoFly is provided for entertainment. Performance depends on your
-            hardware, browser, network and WebGL support. We aim for fair play
-            but do not guarantee bug-free gameplay, continuous service,
-            perfectly secure scores or preservation of local saves.
-          </p>
-        </section>
-        <section>
-          <h2>External services</h2>
-          <p>
-            External links, analytics, hosting and platform integrations are
-            operated by third parties under their own terms. Their inclusion
-            does not promise endorsement or availability. No statement on this
-            site overrides rights or obligations that cannot be excluded by
-            applicable law.
-          </p>
-        </section>
-        <section>
-          <h2>Contact</h2>
-          <p>
-            For technical or content concerns email
-            <a href="mailto:contact@vectofly.com">contact@vectofly.com</a>.
-          </p>
-        </section>
-      </main>
-      <footer>
-        <nav aria-label="Site navigation">
-          <a href="./">Play</a> · <a href="leaderboard.html">Leaderboard</a> ·
-          <a href="how-to-play.html">How to play</a> ·
-          <a href="about.html">About</a> · <a href="contact.html">Contact</a> ·
-          <a href="privacy.html">Privacy</a> · <a href="terms.html">Terms</a> ·
-          <a href="cookie-policy.html">Cookies</a> ·
-          <a href="disclaimer.html">Disclaimer</a> ·
-          <a href="dmca.html">Copyright</a>
+      <header class="site-header">
+        <a class="brand" href="./" aria-label="VectoFly home"
+          ><span class="brand-mark">↗</span
+          ><span>VectoFly<small>ENDLESS SKIES</small></span></a
+        >
+        <nav class="primary-nav" aria-label="Main navigation">
+          <a href="./">Play</a><a href="leaderboard.html">Leaderboard</a
+          ><a href="how-to-play.html">How to play</a
+          ><a href="about.html">About</a><a href="contact.html">Contact</a>
         </nav>
-        <p>
-          VectoFly ·
-          <a href="mailto:contact@vectofly.com">contact@vectofly.com</a> · ©
-          2026
-        </p>
+        <a class="play-link" href="./"
+          >Let’s fly <span aria-hidden="true">↗</span></a
+        >
+      </header>
+      <div class="page-hero">
+        <div class="hero-copy">
+          <p class="eyebrow">BEFORE YOU TAKE OFF</p>
+          <p class="hero-heading">A few things worth knowing.</p>
+          <p class="hero-description">
+            A straightforward guide to the game and its limitations.
+          </p>
+        </div>
+        <div class="hero-art">
+          <svg viewBox="0 0 300 180" fill="none" aria-hidden="true">
+            <ellipse
+              cx="148"
+              cy="155"
+              rx="91"
+              ry="8"
+              fill="#59332e"
+              opacity=".09"
+            />
+            <path d="M53 91L215 67L239 93L111 116Z" fill="#f25346" />
+            <path d="M53 91L111 116L101 85Z" fill="#cc433b" />
+            <path d="M104 87L148 34L180 33L157 80Z" fill="#ff8772" />
+            <path d="M113 102L182 138L212 131L156 94Z" fill="#ef6d5c" />
+            <path d="M57 91L34 55L59 57L86 85Z" fill="#f25346" />
+            <path d="M215 67L239 93L249 81L237 65Z" fill="#59332e" />
+            <path
+              d="M243 48L243 115"
+              stroke="#59332e"
+              stroke-width="4"
+              stroke-linecap="round"
+            />
+            <path d="M139 76L161 71L158 59L142 61Z" fill="#59332e" />
+            <path
+              d="M105 86L203 72"
+              stroke="#fff4dd"
+              stroke-opacity=".6"
+              stroke-width="3"
+            />
+          </svg>
+        </div>
+      </div>
+      <div class="content-layout">
+        <aside class="page-sidebar">
+          <p class="eyebrow">ON THIS PAGE</p>
+          <nav aria-label="On this page">
+            <a href="#section-1"><span>01</span>Game and service limitations</a
+            ><a href="#section-2"><span>02</span>External services</a
+            ><a href="#section-3"><span>03</span>Contact</a>
+          </nav>
+          <div class="support-card">
+            <span aria-hidden="true">↗</span>
+            <h2>Need a hand?</h2>
+            <p>Questions, ideas, or a bumpy flight?</p>
+            <a href="contact.html">Talk to us →</a>
+          </div>
+        </aside>
+        <main id="page-content" class="content-card">
+          <h1>Disclaimer</h1>
+          <p class="updated">Updated 31 October 2026</p>
+          <section id="section-1">
+            <h2>Game and service limitations</h2>
+            <p>
+              VectoFly is provided for entertainment. Performance depends on
+              your hardware, browser, network and WebGL support. We aim for fair
+              play but do not guarantee bug-free gameplay, continuous service,
+              perfectly secure scores or preservation of local saves.
+            </p>
+          </section>
+          <section id="section-2">
+            <h2>External services</h2>
+            <p>
+              External links, analytics, hosting and platform integrations are
+              operated by third parties under their own terms. Their inclusion
+              does not promise endorsement or availability. No statement on this
+              site overrides rights or obligations that cannot be excluded by
+              applicable law.
+            </p>
+          </section>
+          <section id="section-3">
+            <h2>Contact</h2>
+            <p>
+              For technical or content concerns email
+              <a href="mailto:contact@vectofly.com">contact@vectofly.com</a>.
+            </p>
+          </section>
+        </main>
+      </div>
+      <footer class="site-footer">
+        <div>
+          <a class="brand footer-brand" href="./"
+            >VectoFly<span aria-hidden="true">↗</span></a
+          >
+          <p>A little plane. An endless adventure.</p>
+          <a href="mailto:contact@vectofly.com">contact@vectofly.com</a>
+        </div>
+        <div>
+          <nav aria-label="Policies">
+            <a href="privacy.html">Privacy</a><a href="terms.html">Terms</a
+            ><a href="cookie-policy.html">Cookies</a
+            ><a href="disclaimer.html" aria-current="page">Disclaimer</a
+            ><a href="dmca.html">Copyright</a>
+          </nav>
+          <p>© 2026 VectoFly · Made for the joy of flight.</p>
+        </div>
       </footer>
     </div>
   </body>
