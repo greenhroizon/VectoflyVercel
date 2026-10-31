@@ -55,9 +55,9 @@
 <link rel="preconnect" href="https://sdk.crazygames.com" crossorigin>
 <link rel="preload" href="js/three.min.js" as="script">
 
-<link rel="stylesheet" href="css/game.css?v=4">
-<link rel="stylesheet" href="css/vectofly.css?v=4">
-<link rel="stylesheet" href="css/seo.css?v=4">
+<link rel="stylesheet" href="css/game.css?v=5">
+<link rel="stylesheet" href="css/vectofly.css?v=5">
+<link rel="stylesheet" href="css/seo.css?v=5">
 
 <!-- Structured data (JSON-LD) -->
 <script type="application/ld+json">{"@context": "https://schema.org", "@type": "WebSite", "@id": "https://YOUR-DOMAIN.com/#website", "url": "https://YOUR-DOMAIN.com/", "name": "VectoFly", "description": "Free endless 3D plane game you can play online in your browser.", "inLanguage": "en", "publisher": {"@id": "https://YOUR-DOMAIN.com/#org"}}</script>
@@ -66,13 +66,13 @@
 <script type="application/ld+json">{"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": "What is VectoFly?", "acceptedAnswer": {"@type": "Answer", "text": "VectoFly is a free endless 3D plane game that runs in your browser. You fly over an endless world, avoid red spikes, collect blue repair pills and orange fuel cans, and try to reach the top of the global leaderboard."}}, {"@type": "Question", "name": "Is VectoFly free to play?", "acceptedAnswer": {"@type": "Answer", "text": "Yes. VectoFly is completely free to play online. There is nothing to download or install and no account is required."}}, {"@type": "Question", "name": "How do I play VectoFly?", "acceptedAnswer": {"@type": "Answer", "text": "Move your mouse, touch the screen, or use the arrow keys or WASD to steer your plane. Press Space to start, P to pause and M to mute. Collect blue pills to repair damage and orange cans to refuel."}}, {"@type": "Question", "name": "Can I play VectoFly on mobile?", "acceptedAnswer": {"@type": "Answer", "text": "Yes. VectoFly works on phones, tablets and desktop computers in any modern browser that supports WebGL, using touch controls on mobile."}}, {"@type": "Question", "name": "Does VectoFly have a leaderboard?", "acceptedAnswer": {"@type": "Answer", "text": "Yes. The World tab shows the global leaderboard with the best score for each pilot, and the This device tab shows your own best runs."}}, {"@type": "Question", "name": "Are there different planes and maps?", "acceptedAnswer": {"@type": "Answer", "text": "Yes. In the Hangar you can unlock different planes and paint patterns, and the Maps menu lets you fly through different worlds. You can also pick Easy, Medium, Hard or Hell difficulty."}}]}</script>
 
 <script defer src="https://sdk.crazygames.com/crazygames-sdk-v3.js"></script>
-<script defer src="js/config.js?v=4"></script>
+<script defer src="js/config.js?v=5"></script>
 <script defer src="js/TweenMax.min.js"></script>
 <script defer src="js/three.min.js"></script>
-<script defer src="js/world.js?v=4"></script>
-<script defer src="js/planes.js?v=4"></script>
-<script defer src="js/vectofly.js?v=4"></script>
-<script defer src="js/game.js?v=4"></script>
+<script defer src="js/world.js?v=5"></script>
+<script defer src="js/planes.js?v=5"></script>
+<script defer src="js/vectofly.js?v=5"></script>
+<script defer src="js/game.js?v=5"></script>
 </head>
 <body>
 <div class="game-holder" id="gameHolder">
@@ -112,6 +112,7 @@
   <div id="toast"></div>
   <div id="live"><div class="lh">Live Leaderboard</div><ol id="liveList"></ol></div>
   <button id="soundBtn" title="Sound (M)">&#9835;</button>
+  <div id="warn" aria-hidden="true">!</div>
   <div id="visitors" title="Pilots who visited and total games played"></div>
   <div id="ctl" aria-label="Flight controls">
     <div class="grp stack"><button type="button" data-k="u" aria-label="Fly up"><span>&#9650;</span><small>up</small></button><button type="button" data-k="d" aria-label="Fly down"><span>&#9660;</span><small>down</small></button></div>

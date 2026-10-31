@@ -148,3 +148,8 @@ body.playing #visitors{display:none!important}
 @media (max-width:40em){body:not(.playing) #live{display:none}}
 @media (max-height:520px){body:not(.playing) #live{display:none}}
 #visitors .vsep{width:1px;height:12px;background:rgba(244,206,147,.45)}
+
+/* incoming homing spike warning */
+#warn{position:absolute;right:max(8px,env(safe-area-inset-right));top:40%;width:32px;height:32px;border-radius:50%;display:none;z-index:6;pointer-events:none;
+  background:#ff8a1f;color:#fff;font:bold 20px/32px Georgia,serif;text-align:center;box-shadow:0 0 0 3px rgba(255,255,255,.85),0 0 14px #ff8a1f;animation:warnPulse .45s infinite alternate}
+@keyframes warnPulse{from{transform:scale(.88);opacity:.75}to{transform:scale(1.08);opacity:1}}

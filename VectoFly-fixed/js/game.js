@@ -63,7 +63,7 @@ function resetGame(){
           ennemiesSpeed:1,
           ennemyLastSpawn:0,
           distanceForEnnemiesSpawn:48, spawnStart:48, spawnMin:30, spawnStep:2.5, waveBase:2,
-          safeLane:2, reason:"",
+          safeLane:3, waveN:0, idleMs:0, idleY:100, forceSeek:false, reason:"",
           fuel:100, fuelBase:.075, fuelPerLevel:.004, fuelEff:1, fuelValue:40, fuelLastSpawn:0, distanceForFuelSpawn:450,
           maxBaseSpeed:.0011,
           speedPerMeter:.00000012,
@@ -282,7 +282,16 @@ Pilot.prototype.updateHairs = function(){
 
 // ---------- OBSTACLES (red spikes), BLUE PILLS, FUEL ----------
 // Everything sits at the plane's depth (z = 0) and slides left along the flat world.
-function laneY(i){ return game.planeDefaultHeight + (i-2)*34; }
+// 7 height lanes cover the WHOLE flight range (plane flies between y=20 and y=180), so no altitude is ever a safe hiding place.
+var LANES = 7;
+function laneY(i){ return 22 + i*26; }
+function clampLane(l){ return Math.max(0, Math.min(LANES-1, l)); }
+// is there room (no obstacle) around this height near the spawn point? used to place pills / fuel away from danger
+function laneClear(y, reach, x0, x1){
+  var list = ennemiesHolder.ennemiesInUse;
+  for (var i=0;i<list.length;i++){ var e = list[i]; if (e.x > x0 && e.x < x1 && Math.abs((e.seek ? e.y : e.y0) - y) < reach) return false; }
+  return true;
+}
 
 Ennemy = function(){
   var geom = new THREE.TetrahedronGeometry(8,2);
@@ -295,7 +304,14 @@ Ennemy = function(){
   });
   this.mesh = new THREE.Mesh(geom,mat);
   this.mesh.castShadow = true;
-  this.x = 0; this.y = 0;
+  this.x = 0; this.y = 0; this.y0 = 0; this.seek = false; this.locked = false; this.bob = 0; this.ph = 0;
+}
+// reset a pooled spike to a normal red one, or to an orange homing "seeker"
+Ennemy.prototype.setKind = function(seek){
+  this.seek = seek; this.locked = false; this.bob = 0;
+  var m = this.mesh.material;
+  m.color.setHex(seek ? 0xff8a1f : Colors.red); m.emissive.setHex(seek ? 0x6a3000 : 0x3a0c08);
+  var sc = seek ? 1.3 : 1; this.mesh.scale.set(sc,sc,sc);
 }
 
 EnnemiesHolder = function (){
@@ -303,34 +319,81 @@ EnnemiesHolder = function (){
   this.ennemiesInUse = [];
 }
 
-// Fair waves: 5 height lanes, one lane is always left clear and it moves by at most 2 lanes between waves.
+EnnemiesHolder.prototype.add = function(x, y, seek){
+  var ennemy = ennemiesPool.length ? ennemiesPool.pop() : new Ennemy();
+  ennemy.setKind(!!seek);
+  ennemy.x = x; ennemy.y = y; ennemy.y0 = y;
+  ennemy.mesh.position.set(x, y, 0);
+  this.mesh.add(ennemy.mesh);
+  this.ennemiesInUse.push(ennemy);
+  return ennemy;
+}
+
+// Homing spikes: they appear at the plane's CURRENT height and follow it, locking on shortly before impact.
+// Sitting still (at the top, the bottom or anywhere) gets you hit, you have to keep moving.
+EnnemiesHolder.prototype.spawnSeekers = function(n){
+  var py = airplane.mesh.position.y;
+  for (var k=0;k<n;k++){
+    var y = Math.max(18, Math.min(182, py + (k ? (Math.random()<.5 ? -1 : 1)*30 : 0)));
+    this.add(SPAWN_X + k*70, y, true);
+  }
+}
+
+// Waves. The safe gate moves at most 2 lanes (1 when it gets fast), so every wave is always beatable.
+//   scatter = spikes in random lanes (some bob up and down later on)   wall = a full column with one gate
+//   comb    = every other lane blocked, fly through the gaps           seeker = homing spikes
 EnnemiesHolder.prototype.spawnEnnemies = function(){
-  var s = Math.max(0, Math.min(4, game.safeLane + Math.floor(Math.random()*5) - 2));
+  game.waveN++;
+  var lvl = game.level;
+  if (game.forceSeek || game.waveN % (lvl < 3 ? 4 : 3) === 0){
+    game.forceSeek = false; game.idleMs = 0;
+    this.spawnSeekers(lvl >= 6 && Math.random() < .5 ? 2 : 1);
+    return;
+  }
+  var step = game.distanceForEnnemiesSpawn < 38 ? 1 : 2;
+  var s = clampLane(game.safeLane + Math.floor(Math.random()*(step*2+1)) - step);
   game.safeLane = s;
-  var n = Math.min(game.waveBase + Math.floor(game.level/2), 4);
-  for (var i=0; i<n; i++){
-    var lane; do { lane = Math.floor(Math.random()*5); } while (lane===s);
-    var ennemy = ennemiesPool.length ? ennemiesPool.pop() : new Ennemy();
-    ennemy.x = SPAWN_X + i*84;
-    ennemy.y = laneY(lane);
-    ennemy.mesh.position.set(ennemy.x, ennemy.y, 0);
-    this.mesh.add(ennemy.mesh);
-    this.ennemiesInUse.push(ennemy);
+  var r = Math.random(), kind = 'scatter', i, lane;
+  if (lvl >= 2) kind = r < .3 ? 'wall' : (r < .5 && s%2===1) ? 'comb' : 'scatter';
+  if (kind === 'wall'){
+    var gate2 = lvl < 5 ? (s < LANES-1 ? s+1 : s-1) : -1;            // early on the gate is two lanes wide
+    for (lane=0; lane<LANES; lane++){ if (lane!==s && lane!==gate2) this.add(SPAWN_X, laneY(lane), false); }
+  } else if (kind === 'comb'){
+    for (lane=0; lane<LANES; lane+=2) this.add(SPAWN_X, laneY(lane), false);
+  } else {
+    var n = Math.min(3 + Math.floor(lvl/2), 5);
+    for (i=0; i<n; i++){
+      do { lane = Math.floor(Math.random()*LANES); } while (lane===s);
+      var e = this.add(SPAWN_X + i*60, laneY(lane), false);
+      if (lvl >= 3 && Math.abs(lane-s) >= 2 && Math.random() < .35){ e.bob = 12 + Math.random()*8; e.ph = Math.random()*6.28; }
+    }
   }
 }
 
 EnnemiesHolder.prototype.rotateEnnemies = function(){
   for (var i=0; i<this.ennemiesInUse.length; i++){
     var ennemy = this.ennemiesInUse[i];
-    ennemy.x -= dxFrame*game.ennemiesSpeed;
+    var mult = ennemy.seek ? 1.15 : 1;
+    ennemy.x -= dxFrame*game.ennemiesSpeed*mult;
     ennemy.mesh.position.x = ennemy.x;
+    if (ennemy.seek && !ennemy.locked && game.status=="playing"){
+      // follow the plane's height until about 0.42 s before impact, then lock on (so a late dodge still works)
+      var vx = deltaTime > 0 ? dxFrame*game.ennemiesSpeed*mult/deltaTime : 0;
+      if (vx > .0001 && (ennemy.x - airplane.mesh.position.x)/vx > 420) ennemy.y += (airplane.mesh.position.y - ennemy.y)*Math.min(1, deltaTime*.006);
+      else ennemy.locked = true;
+      ennemy.mesh.position.y = ennemy.y;
+      if (Math.random() < .35) emitPuff(ennemy.x + 8, ennemy.y, 2);
+    } else if (ennemy.bob){
+      ennemy.y = ennemy.y0 + Math.sin(newTime*.0035 + ennemy.ph)*ennemy.bob;
+      ennemy.mesh.position.y = ennemy.y;
+    }
     ennemy.mesh.rotation.z += Math.random()*.1;
     ennemy.mesh.rotation.y += Math.random()*.1;
 
     var diffPos = airplane.mesh.position.clone().sub(ennemy.mesh.position);
     var d = diffPos.length();
-    if (d<game.ennemyDistanceTolerance && game.status=="playing"){
-      particlesHolder.spawnParticles(ennemy.mesh.position.clone(), 15, Colors.red, 3);
+    if (d<game.ennemyDistanceTolerance*(ennemy.seek ? 1.15 : 1) && game.status=="playing"){
+      particlesHolder.spawnParticles(ennemy.mesh.position.clone(), 15, ennemy.seek ? 0xff8a1f : Colors.red, 3);
 
       ennemiesPool.unshift(this.ennemiesInUse.splice(i,1)[0]);
       this.mesh.remove(ennemy.mesh);
@@ -430,8 +493,13 @@ CoinsHolder = function (nCoins){
 CoinsHolder.prototype.spawnCoins = function(){
 
   var nCoins = 1 + Math.floor(Math.random()*10);
-  var d = laneY(game.safeLane);
-  var amplitude = 10 + Math.round(Math.random()*10);
+  // pills are not always in the safe lane any more: half of the trails sweep a random height with a big wave, so you must move to get them
+  var lane = game.safeLane, amplitude = 8 + Math.round(Math.random()*5);
+  if (Math.random() < .5){
+    var cand = Math.floor(Math.random()*LANES), amp = 12 + Math.round(Math.random()*26);
+    if (laneClear(laneY(cand), amp + 26, SPAWN_X - 90, SPAWN_X + 220)){ lane = cand; amplitude = amp; }
+  }
+  var d = laneY(lane);
   for (var i=0; i<nCoins; i++){
     var coin;
     if (this.coinsPool.length) {
@@ -442,7 +510,7 @@ CoinsHolder.prototype.spawnCoins = function(){
     this.mesh.add(coin.mesh);
     this.coinsInUse.push(coin);
     coin.x = SPAWN_X + i*14;
-    coin.y = d + Math.cos(i*.5)*amplitude;
+    coin.y = Math.max(16, Math.min(184, d + Math.cos(i*.5)*amplitude));
     coin.mesh.position.set(coin.x, coin.y, 0);
   }
 }
@@ -487,7 +555,9 @@ Fuel = function(){
 FuelHolder = function(){ this.mesh = new THREE.Object3D(); this.inUse = []; this.pool = []; }
 FuelHolder.prototype.spawn = function(){
   var f = this.pool.length ? this.pool.pop() : new Fuel();
-  f.x = SPAWN_X; f.y = laneY(game.safeLane);
+  var fl = game.safeLane;
+  if (Math.random() < .6){ var c = Math.floor(Math.random()*LANES); if (laneClear(laneY(c), 40, SPAWN_X - 90, SPAWN_X + 120)) fl = c; }
+  f.x = SPAWN_X; f.y = laneY(fl);
   f.mesh.position.set(f.x, f.y, 0);
   this.mesh.add(f.mesh); this.inUse.push(f);
 }
@@ -618,9 +688,9 @@ function loop(){
 
   if (game.status=="playing"){
 
+    if (game.distance-game.ennemyLastSpawn >= game.distanceForEnnemiesSpawn){ game.ennemyLastSpawn=game.distance; ennemiesHolder.spawnEnnemies(); }
     if (game.distance-game.coinLastSpawn >= game.distanceForCoinsSpawn){ game.coinLastSpawn=game.distance; coinsHolder.spawnCoins(); }
     if (game.distance-game.fuelLastSpawn >= game.distanceForFuelSpawn){ game.fuelLastSpawn=game.distance; fuelHolder.spawn(); }
-    if (game.distance-game.ennemyLastSpawn >= game.distanceForEnnemiesSpawn){ game.ennemyLastSpawn=game.distance; ennemiesHolder.spawnEnnemies(); }
     var lv = 1+Math.floor(game.distance/game.distanceForLevelUpdate);
     if (lv>game.level){ game.level=lv; fieldLevel.innerHTML=lv; game.distanceForEnnemiesSpawn=Math.max(game.spawnMin, game.spawnStart - game.spawnStep*lv); game.distanceForFuelSpawn=Math.max(330,450-5*lv); VF.onLevel(lv); }
     // endless Chrome-dino style ramp: speed grows continuously with distance
@@ -674,6 +744,7 @@ function loop(){
   coinsHolder.rotateCoins();
   fuelHolder.rotate();
   ennemiesHolder.rotateEnnemies();
+  updateWarn();
 
   if (game.status=="playing") emitPlaneEffects();
   updatePuffs();
@@ -749,6 +820,29 @@ function updatePlane(){
   game.planeCollisionDisplacementY += (0-game.planeCollisionDisplacementY)*deltaTime *0.01;
 
   airplane.pilot.updateHairs();
+
+  // standing still (same height for ~2.5 s) calls in a homing spike
+  if (Math.abs(airplane.mesh.position.y - game.idleY) < 7) game.idleMs += deltaTime; else { game.idleY = airplane.mesh.position.y; game.idleMs = 0; }
+  if (game.idleMs > 2500) game.forceSeek = true;
+}
+
+// red "!" at the right edge, at the height of an incoming homing spike that is still off screen
+var warnEl = null, warnV = null;
+function updateWarn(){
+  if (!warnEl) warnEl = document.getElementById('warn');
+  if (!warnEl) return;
+  var show = false, y = 0;
+  if (game.status=="playing"){
+    var list = ennemiesHolder.ennemiesInUse;
+    for (var i=0;i<list.length;i++){
+      var e = list[i]; if (!e.seek) continue;
+      if (!warnV) warnV = new THREE.Vector3();
+      warnV.copy(e.mesh.position).project(camera);
+      if (warnV.x > .9 || warnV.z > 1){ show = true; y = Math.max(70, Math.min(HEIGHT-130, (1-warnV.y)/2*HEIGHT)); break; }
+    }
+  }
+  if (show){ warnEl.style.top = Math.round(y-16)+'px'; if (warnEl.style.display!=='block') warnEl.style.display='block'; }
+  else if (warnEl.style.display!=='none') warnEl.style.display='none';
 }
 
 function startGame(){
