@@ -81,10 +81,13 @@ async function createIfAbsent(path, value) {
 const inc = n => ({ '.sv': { increment: n } });
 
 // ---------- helpers ----------
-function cleanName(n) {
-  n = String(n == null ? '' : n).replace(/[\u0000-\u001f\u007f<>&"'`\\]/g, '').replace(/\s+/g, ' ').trim().slice(0, 12);
-  return n || 'Pilot';
-}
+// Pilot names are random: only "Adjective Noun NN" from these lists is accepted (same lists as js/vectofly.js).
+// Anything else (old typed names, tampered requests) is replaced by a name derived from the player id, so no free text is ever stored or shown.
+const NAME_ADJ = ['Swift','Brave','Bold','Calm','Clever','Cosmic','Daring','Fierce','Gentle','Golden','Happy','Jolly','Lucky','Mighty','Nimble','Noble','Proud','Rapid','Silent','Sunny','Stormy','Turbo','Wild','Witty'];
+const NAME_NOUN = ['Falcon','Eagle','Hawk','Raven','Condor','Osprey','Comet','Rocket','Jet','Pilot','Ace','Cloud','Storm','Blaze','Bolt','Dragon','Viper','Wolf','Tiger','Otter','Panda','Fox','Lynx','Rider'];
+function derivedName(id) { const h = crypto.createHash('sha256').update('name|' + id).digest(); return NAME_ADJ[h[0] % NAME_ADJ.length] + ' ' + NAME_NOUN[h[1] % NAME_NOUN.length] + ' ' + (10 + h[2] % 90); }
+function validName(n) { const p = String(n == null ? '' : n).split(' '); return p.length === 3 && NAME_ADJ.indexOf(p[0]) > -1 && NAME_NOUN.indexOf(p[1]) > -1 && /^\d\d$/.test(p[2]); }
+function cleanName(n, id) { return validName(n) ? String(n) : derivedName(id); }
 function send(res, code, obj, cache) {
   res.status(code);
   res.setHeader('Cache-Control', cache ? 'public, max-age=0, s-maxage=' + cache + ', stale-while-revalidate=' + cache*2 : 'no-store, max-age=0');
@@ -154,7 +157,7 @@ module.exports = async function handler(req, res) {
       }
       const limit = Math.max(1, Math.min(1000, +(req.query && req.query.limit) || 50));
       const [list, st] = await Promise.all([topScores(limit), stats()]);
-      return send(res, 200, { scores: list.slice(0, limit).map(e => ({ n: String(e.n || 'Pilot').slice(0, 12), s: e.s, k: pub(e.id) })), visitors: st.visitors, games: st.games, at: Date.now() }, limit > 100 ? 5 : 0);
+      return send(res, 200, { scores: list.slice(0, limit).map(e => ({ n: validName(e.n) ? e.n : derivedName(e.id), s: e.s, k: pub(e.id) })), visitors: st.visitors, games: st.games, at: Date.now() }, limit > 100 ? 5 : 0);
     }
 
     if (req.method !== 'POST') return send(res, 405, { error: 'method' });
@@ -170,7 +173,7 @@ module.exports = async function handler(req, res) {
     if (b.action === 'visit') {
       if (limited(ip, 'visit', 30)) return send(res, 429, { error: 'slow down' });
       if (await createIfAbsent('/visitors/' + id, 1)) await fb('PATCH', '/meta', { body: { visitors: inc(1) } });
-      return send(res, 200, Object.assign({ ok: true }, await stats()));
+      return send(res, 200, Object.assign({ ok: true, k: pub(id) }, await stats()));
     }
 
     // ---- step 1: a run ticket, issued when the flight starts (this also counts one game played) ----
@@ -179,7 +182,7 @@ module.exports = async function handler(req, res) {
       const ts = Date.now(), nonce = crypto.randomBytes(8).toString('hex');
       await fb('PATCH', '/meta', { body: { games: inc(1) } });
       const st = await stats();
-      return send(res, 200, { t: [ts, nonce, sign(id, ts, nonce)].join('.'), games: st.games });
+      return send(res, 200, { t: [ts, nonce, sign(id, ts, nonce)].join('.'), games: st.games, k: pub(id) });
     }
 
     // ---- step 2: submit the finished run ----
@@ -207,7 +210,7 @@ module.exports = async function handler(req, res) {
     if (Math.abs(score - Math.floor((dist + pills * 5) * mult)) > 3) return rej(res, 422, 'score', b);
     if (dist > 5e6 || score > 1e7) return rej(res, 422, 'implausible', b);
 
-    const name = cleanName(b.name), prevR = await fb('GET', '/scores/' + id + '/s'), prev = typeof prevR.data === 'number' ? prevR.data : null;
+    const name = cleanName(b.name, id), prevR = await fb('GET', '/scores/' + id + '/s'), prev = typeof prevR.data === 'number' ? prevR.data : null;
     let best = prev;
     if (prev === null || score > prev) {
       best = score;

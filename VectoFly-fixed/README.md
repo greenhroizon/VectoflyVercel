@@ -29,7 +29,7 @@ The server keeps one best score per player, rate-limits submissions and rejects 
       "$uid": {
         ".write": "!data.exists() || newData.child('s').val() >= data.child('s').val()",
         ".validate": "newData.hasChildren(['n','s','t'])",
-        "n": { ".validate": "newData.isString() && newData.val().length <= 12" },
+        "n": { ".validate": "newData.isString() && newData.val().length <= 16" },
         "s": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 10000000" },
         "t": { ".validate": "newData.isNumber()" },
         "$other": { ".validate": false }

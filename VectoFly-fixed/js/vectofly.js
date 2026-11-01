@@ -6,6 +6,18 @@ var VF = (function(){
   var S = {name:'', uid:'', gbest:0, hi:0, coins:0, dist:0, games:0, bestLevel:1, music:true, sfx:true, vib:true, btns:true, hint:false, dayKey:'', streak:0, board:[], gk:'', diff:'hard', wallet:-1, plane:'classic', planes:['classic'], skin:'default', skins:['default'], map:'coast', maps:['coast']};
   // Targets for the local board so it is never empty. They are clearly labelled bots, not real players.
   var BOTS = [{n:'Ace (bot)',s:9000,b:1},{n:'Maverick (bot)',s:5000,b:1},{n:'Skylark (bot)',s:2500,b:1},{n:'Rookie (bot)',s:800,b:1}];
+  // Pilot names are always generated here (and checked/derived again on the server): nobody types their own name.
+  var NAME_ADJ = ['Swift','Brave','Bold','Calm','Clever','Cosmic','Daring','Fierce','Gentle','Golden','Happy','Jolly','Lucky','Mighty','Nimble','Noble','Proud','Rapid','Silent','Sunny','Stormy','Turbo','Wild','Witty'];
+  var NAME_NOUN = ['Falcon','Eagle','Hawk','Raven','Condor','Osprey','Comet','Rocket','Jet','Pilot','Ace','Cloud','Storm','Blaze','Bolt','Dragon','Viper','Wolf','Tiger','Otter','Panda','Fox','Lynx','Rider'];
+  function genName(){
+    var a = new Uint32Array(3);
+    try { crypto.getRandomValues(a); } catch(e){ a[0] = Math.random()*4294967296; a[1] = Math.random()*4294967296; a[2] = Math.random()*4294967296; }
+    return NAME_ADJ[a[0] % NAME_ADJ.length] + ' ' + NAME_NOUN[a[1] % NAME_NOUN.length] + ' ' + (10 + a[2] % 90);
+  }
+  function okName(n){
+    var p = String(n || '').split(' ');
+    return p.length === 3 && NAME_ADJ.indexOf(p[0]) > -1 && NAME_NOUN.indexOf(p[1]) > -1 && /^\d\d$/.test(p[2]);
+  }
   var shake = 0, lastWarn = 0, mode = 'menu', lastEarned = 0, F = {paused:false}, cg = null, muted = false, runCoins = 0, runBonus = 0, combo = 0, nearMisses = 0, newBest = false, lastBoard = 0, frameN = 0, legit = 0, playMs = 0, cheated = false, ticket = null;
 
   // ---------- SAVE (localStorage + CrazyGames cloud data) ----------
@@ -103,7 +115,7 @@ var VF = (function(){
 
   // ---------- LEADERBOARD: global (own Node server, or Firebase Realtime Database over REST) + local ----------
   // API_URL / same-origin /api/scores -> server/server.js ; FIREBASE_URL -> Firebase. Neither reachable -> local board only.
-  var G = {list:null, state:'idle', at:0, dead:false, err:'', rej:'', sub:'', rank:0, visitors:-1, games:0};
+  var G = {again:false, lastBest:0, list:null, state:'idle', at:0, dead:false, err:'', rej:'', sub:'', rank:0, visitors:-1, games:0};
   function mode_(){ return CFG.FIREBASE_URL ? 'fb' : 'api'; }
   function apiBase(){ return String(CFG.API_URL || '').replace(/\/+$/,''); }
   function gOn(){
@@ -115,7 +127,8 @@ var VF = (function(){
   function withTimeout(p, ms){ return new Promise(function(res, rej){ var t = setTimeout(function(){ rej(new Error('timeout')); }, ms); p.then(function(v){ clearTimeout(t); res(v); }, function(e){ clearTimeout(t); rej(e); }); }); }
   function myKey(){ return mode_() === 'fb' ? S.uid : S.gk; }
   function gFetch(force){
-    if (!gOn() || G.state === 'loading') return;
+    if (!gOn()) return;
+    if (G.state === 'loading'){ if (force) G.again = true; return; }   // a refresh asked for while one is running is not dropped
     if (!force && G.list && Date.now() - G.at < 8000) return;
     G.state = 'loading'; if (!G.list) paintBoard();
     var top = CFG.SHOW_TOP || 20, fb = mode_() === 'fb', bust = fb ? '' : '&_=' + Date.now();   // cache-buster: every device always sees fresh scores
@@ -125,21 +138,23 @@ var VF = (function(){
       .then(function(j){
         var arr = [];
         if (fb){
-          if (j && typeof j === 'object') for (var k in j){ var e = j[k]; if (e && typeof e.s === 'number' && typeof e.n === 'string') arr.push({n:e.n.slice(0,12), s:Math.floor(e.s), k:k}); }
+          if (j && typeof j === 'object') for (var k in j){ var e = j[k]; if (e && typeof e.s === 'number' && typeof e.n === 'string') arr.push({n:e.n.slice(0,16), s:Math.floor(e.s), k:k}); }
         } else {
           if (!j || !j.scores){ var en = new Error('not a score server'); en.notJson = true; throw en; }
           if (typeof j.visitors === 'number') G.visitors = j.visitors;
           if (typeof j.games === 'number') G.games = j.games;
-          j.scores.forEach(function(e){ if (e && typeof e.s === 'number') arr.push({n:String(e.n).slice(0,12), s:Math.floor(e.s), k:e.k}); });
+          j.scores.forEach(function(e){ if (e && typeof e.s === 'number') arr.push({n:String(e.n).slice(0,16), s:Math.floor(e.s), k:e.k}); });
         }
         arr.sort(function(a,b){ return b.s - a.s; });
-        G.list = arr; G.state = 'ok'; G.err = ''; G.at = Date.now(); paintBoard();
+        G.list = arr; G.state = 'ok'; G.err = ''; G.at = Date.now(); paintBoard(); drawLive();
+        if (G.again){ G.again = false; gFetch(true); }
       })
       .catch(function(e){
         // a plain static host has no /api/scores (404 / not JSON): fall back to the local board. Any other error is
         // temporary (server hiccup, bad Redis setup, offline), so keep the World tab and retry on the next refresh.
         if (mode_() === 'api' && !CFG.API_URL && !G.list && e && (e.status === 404 || e.notJson)){ G.dead = true; }
         G.err = (e && e.hint) || ''; G.state = 'err'; G.at = Date.now(); paintBoard();
+        if (G.again){ G.again = false; setTimeout(function(){ gFetch(true); }, 1500); }
       });
   }
   function newId(){
@@ -155,7 +170,8 @@ var VF = (function(){
     if (!S.uid){ S.uid = newId(); save(); }
     withTimeout(fetch(apiBase() + '/api/scores', {method:'POST', cache:'no-store', headers:{'Content-Type':'application/json'}, body:JSON.stringify({action:'visit', id:S.uid})}), 8000)
       .then(function(r){ if (!r.ok) throw new Error('http'); return r.json(); })
-      .then(function(j){ if (j && typeof j.visitors === 'number'){ G.visitors = j.visitors; if (typeof j.games === 'number') G.games = j.games; paintBoard(); } })
+      .then(function(j){ if (j && j.k && S.gk !== j.k){ S.gk = j.k; save(); }
+        if (j && typeof j.visitors === 'number'){ G.visitors = j.visitors; if (typeof j.games === 'number') G.games = j.games; paintBoard(); } })
       .catch(function(){});
   }
   function gStart(){
@@ -164,7 +180,7 @@ var VF = (function(){
     if (!S.uid){ S.uid = newId(); save(); }
     withTimeout(fetch(apiBase() + '/api/scores', {method:'POST', cache:'no-store', headers:{'Content-Type':'application/json'}, body:JSON.stringify({action:'start', id:S.uid})}), 8000)
       .then(function(r){ if (!r.ok) throw new Error('http ' + r.status); return r.json(); })
-      .then(function(j){ if (j && j.t) ticket = j.t; if (j && typeof j.games === 'number') G.games = j.games; })
+      .then(function(j){ if (j && j.k && S.gk !== j.k){ S.gk = j.k; save(); } if (j && j.t) ticket = j.t; if (j && typeof j.games === 'number') G.games = j.games; })
       .catch(function(){});
   }
   function gSubmit(score, dist, level, pills){
@@ -173,25 +189,32 @@ var VF = (function(){
     G.sub = 'Saving your score...'; paintBoard();
     var req;
     if (mode_() === 'fb'){
-      req = fetch(gUrl('/' + S.uid), {method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify({n:(S.name || 'Pilot').slice(0,12), s:score, t:{'.sv':'timestamp'}})})
-        .then(function(r){ if (!r.ok) throw new Error('http ' + r.status); });
+      req = fetch(gUrl('/' + S.uid), {method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify({n:(okName(S.name) ? S.name : 'Pilot'), s:score, t:{'.sv':'timestamp'}})})
+        .then(function(r){ if (!r.ok) throw new Error('http ' + r.status); G.lastBest = score; });
     } else {
-      req = fetch(apiBase() + '/api/scores', {method:'POST', headers:{'Content-Type':'application/json'}, cache:'no-store', body:JSON.stringify({id:S.uid, name:(S.name || 'Pilot').slice(0,12), score:score, dist:dist, level:level, pills:pills, playMs:Math.round(playMs), diff:S.diff, plane:S.plane, t:ticket})})
+      req = fetch(apiBase() + '/api/scores', {method:'POST', headers:{'Content-Type':'application/json'}, cache:'no-store', body:JSON.stringify({id:S.uid, name:S.name, score:score, dist:dist, level:level, pills:pills, playMs:Math.round(playMs), diff:S.diff, plane:S.plane, t:ticket})})
         .then(function(r){ if (!r.ok){ var er = new Error('http ' + r.status); er.status = r.status; return r.text().then(function(t){ try { er.code = (JSON.parse(t) || {}).error || ''; } catch(x){} throw er; }); } return r.json(); })
-        .then(function(j){ if (j && j.k) S.gk = j.k; if (j && j.rank) G.rank = j.rank; });
+        .then(function(j){ if (j && j.k) S.gk = j.k; if (j && j.rank) G.rank = j.rank; G.lastBest = (j && typeof j.best === 'number') ? j.best : score; });
     }
     withTimeout(req, 9000)
-      .then(function(){ G.sub = G.rank ? 'Score saved - you are #' + G.rank + ' in the world!' : 'Score saved to the world board!'; S.gbest = Math.max(S.gbest || 0, score); save(); gFetch(true); paintBoard(); })
+      .then(function(){ G.sub = G.rank ? 'Score saved - you are #' + G.rank + ' in the world!' : 'Score saved to the world board!'; S.gbest = Math.max(S.gbest || 0, G.lastBest || score); save(); patchMine(G.lastBest || score); gFetch(true); paintBoard(); drawLive(); })
       .catch(function(e){
         var why = e && e.code ? e.code : (e && e.status ? 'http ' + e.status : 'no connection');
         G.sub = 'Score not saved (' + why + ').' + (e && e.code === 'ticket' ? ' Reload the page and play again.' : '');
         paintBoard();
       });
   }
+  // right after a score is saved, show it on every board at once instead of waiting for the next refresh
+  function patchMine(best){
+    var key = myKey(); if (!G.list || !key || !(best > 0)) return;
+    var me = null; G.list.forEach(function(e){ if (e.k === key) me = e; });
+    if (me){ me.s = Math.max(me.s, best); me.n = S.name; } else G.list.push({n:S.name, s:best, k:key});
+    G.list.sort(function(a,b){ return b.s - a.s; });
+  }
   function localAll(){ return S.board.map(function(e){ return {n:e.n,s:e.s}; }).concat(BOTS.map(function(b){ return {n:b.n,s:b.s,b:1}; })).sort(function(a,b){ return b.s-a.s; }); }
   // base list the live in-game board compares against
   function all(){
-    if (gOn() && G.list) return G.list.filter(function(e){ return e.k !== myKey(); });
+    if (gOn()) return G.list ? G.list.filter(function(e){ return !myKey() || e.k !== myKey(); }) : [];   // same list as the main board, never the local bots
     return localAll();
   }
   function li(r,n,s,cls){
@@ -267,7 +290,7 @@ var VF = (function(){
     DIFFS.forEach(function(d){ var b = h('button', (S.diff===d.id ? 'on ' : '') + 'd-' + d.id, d.n); b.onclick = function(){ S.diff = d.id; save(); drawPanel(mode); }; dr.appendChild(b); });
     $('diffNote').textContent = 'Score and coins x' + diff().mult;
     $('playBtn').textContent = mode==='over' ? 'Play again' : 'Play';
-    $('nameIn').value = S.name || $('nameIn').value;
+    $('pilotName').textContent = S.name;
     paintBoard(); gFetch(false); if (window.vfWireFeedback) vfWireFeedback($('panel'));
     $('stats').textContent = 'Best ' + S.hi + '  |  Pills ' + S.coins + '  |  Flights ' + S.games + '  |  Top level ' + S.bestLevel;
     $('optMusic').checked = S.music; $('optSfx').checked = S.sfx; $('optVib').checked = S.vib !== false;
@@ -281,8 +304,8 @@ var VF = (function(){
     F.paused = false; muted = false;
     try { ac(); } catch(e){}
     apply();
-    var n = ($('nameIn').value || '').replace(/[<>]/g,'').trim().slice(0,12);
-    S.name = n || S.name || 'Pilot' + Math.floor(Math.random()*900+100); save();
+    if (!okName(S.name)) S.name = genName();
+    save();
     var launched = false;
     var launch = function(){
       if (launched) return; launched = true; starting = false;
@@ -642,7 +665,9 @@ var VF = (function(){
     if (F.paused) toast('PAUSED - tap to resume','#fff6e2');
   }
   function init(){
-    load(); if (S.wallet < 0) S.wallet = S.coins; drawPanel('menu'); sdkInit(); drawLive(); gVisit(); dailyGift(); drawPanel('menu');
+    load(); if (S.wallet < 0) S.wallet = S.coins;
+    if (!okName(S.name)){ S.name = genName(); save(); }   // old typed names are replaced by a random pilot name
+    $('rerollName').onclick = function(){ var n; do { n = genName(); } while (n === S.name); S.name = n; save(); $('pilotName').textContent = n; drawLive(); }; drawPanel('menu'); sdkInit(); drawLive(); gVisit(); dailyGift(); drawPanel('menu');
     // keep the world board fresh on every device: poll while the page is visible, refresh the moment you come back
     setInterval(function(){ if (!document.hidden) gFetch(true); }, 10000);
     document.addEventListener('visibilitychange', function(){ if (!document.hidden) gFetch(true); });

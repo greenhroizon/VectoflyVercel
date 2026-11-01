@@ -67,16 +67,19 @@ function send(res, code, obj, extra) {
   }, extra || {}));
   res.end(body);
 }
-function cleanName(n) {
-  n = String(n == null ? '' : n).replace(/[\u0000-\u001f\u007f<>&"'`\\]/g, '').replace(/\s+/g, ' ').trim().slice(0, 12);
-  return n || 'Pilot';
-}
+// Pilot names are random: only "Adjective Noun NN" from these lists is accepted (same lists as js/vectofly.js).
+// Anything else (old typed names, tampered requests) is replaced by a name derived from the player id, so no free text is ever stored or shown.
+const NAME_ADJ = ['Swift','Brave','Bold','Calm','Clever','Cosmic','Daring','Fierce','Gentle','Golden','Happy','Jolly','Lucky','Mighty','Nimble','Noble','Proud','Rapid','Silent','Sunny','Stormy','Turbo','Wild','Witty'];
+const NAME_NOUN = ['Falcon','Eagle','Hawk','Raven','Condor','Osprey','Comet','Rocket','Jet','Pilot','Ace','Cloud','Storm','Blaze','Bolt','Dragon','Viper','Wolf','Tiger','Otter','Panda','Fox','Lynx','Rider'];
+function derivedName(id) { const h = crypto.createHash('sha256').update('name|' + id).digest(); return NAME_ADJ[h[0] % NAME_ADJ.length] + ' ' + NAME_NOUN[h[1] % NAME_NOUN.length] + ' ' + (10 + h[2] % 90); }
+function validName(n) { const p = String(n == null ? '' : n).split(' '); return p.length === 3 && NAME_ADJ.indexOf(p[0]) > -1 && NAME_NOUN.indexOf(p[1]) > -1 && /^\d\d$/.test(p[2]); }
+function cleanName(n, id) { return validName(n) ? String(n) : derivedName(id); }
 
 function api(req, res, url) {
   if (req.method === 'OPTIONS') return send(res, 204, '');
   if (req.method === 'GET') {
     const limit = Math.max(1, Math.min(1000, +url.searchParams.get('limit') || 50));
-    return send(res, 200, { scores: sorted().slice(0, limit).map(e => ({ n: e.n, s: e.s, k: pub(e.id) })), visitors: visitors.size, games });
+    return send(res, 200, { scores: sorted().slice(0, limit).map(e => ({ n: validName(e.n) ? e.n : derivedName(e.id), s: e.s, k: pub(e.id) })), visitors: visitors.size, games });
   }
   if (req.method !== 'POST') return send(res, 405, { error: 'method' });
   let raw = '';
@@ -87,12 +90,12 @@ function api(req, res, url) {
     const id = String(b.id || '');
     if (!/^[a-z0-9]{6,32}$/.test(id)) return send(res, 400, { error: 'id' });
     if (limited(clientIp(req))) return send(res, 429, { error: 'slow down' });
-    if (b.action === 'visit') { if (!visitors.has(id) && visitors.size < 5e6) { visitors.add(id); vDirty = true; } return send(res, 200, { ok: true, visitors: visitors.size, games }); }
+    if (b.action === 'visit') { if (!visitors.has(id) && visitors.size < 5e6) { visitors.add(id); vDirty = true; } return send(res, 200, { ok: true, visitors: visitors.size, games, k: pub(id) }); }
     // step 1: signed single-use run ticket, issued when a flight starts
     if (b.action === 'start') {
       const ts = Date.now(), nonce = crypto.randomBytes(8).toString('hex');
       games++; vDirty = true;
-      return send(res, 200, { t: [ts, nonce, sign(id, ts, nonce)].join('.'), games });
+      return send(res, 200, { t: [ts, nonce, sign(id, ts, nonce)].join('.'), games, k: pub(id) });
     }
     // step 2: the finished run, checked against the ticket and against what the game can physically produce
     const score = Math.floor(+b.score), dist = Math.floor(+b.dist), level = Math.floor(+b.level), pills = Math.floor(+b.pills), playMs = Math.floor(+b.playMs);
@@ -113,7 +116,7 @@ function api(req, res, url) {
     if (pills > dist / 85 * 10 + 10) return send(res, 422, { error: 'pills' });
     if (Math.abs(score - Math.floor((dist + pills * 5) * mult)) > 3) return send(res, 422, { error: 'score' });
     if (dist > 5e6 || score > 1e7) return send(res, 422, { error: 'implausible' });
-    const prev = scores[id], name = cleanName(b.name);
+    const prev = scores[id], name = cleanName(b.name, id);
     if (!prev || score > prev.s) { scores[id] = { n: name, s: score, d: dist, l: level, p: String(b.plane || '').slice(0, 16), df: String(b.diff), t: Date.now() }; trim(); dirty = true; }
     else if (prev.n !== name) { prev.n = name; dirty = true; }
     const best = scores[id].s, rank = sorted().findIndex(e => e.id === id) + 1;
