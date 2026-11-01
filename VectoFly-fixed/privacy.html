@@ -2,11 +2,11 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Privacy Policy - VectoFly</title>
-<meta name="description" content="VectoFly global privacy policy: what data the game uses, your rights under GDPR, UK GDPR, CCPA/CPRA and other laws, and how to contact us.">
+<meta name="description" content="How VectoFly handles data: Google Analytics, leaderboard scores, local storage, your rights under GDPR, UK GDPR, CCPA/CPRA and how to contact us.">
 <meta name="robots" content="index, follow, max-image-preview:large">
-<link rel="canonical" href="https://YOUR-DOMAIN.com/privacy.html">
+<link rel="canonical" href="https://vectofly.com/privacy.html">
 <meta name="theme-color" content="#f7d9aa">
 <link rel="icon" href="favicon.ico" sizes="any">
 <link rel="icon" type="image/png" sizes="192x192" href="img/icon-192.png">
@@ -15,74 +15,140 @@
 <meta property="og:type" content="article">
 <meta property="og:site_name" content="VectoFly">
 <meta property="og:title" content="Privacy Policy - VectoFly">
-<meta property="og:description" content="VectoFly global privacy policy: what data the game uses, your rights under GDPR, UK GDPR, CCPA/CPRA and other laws, and how to contact us.">
-<meta property="og:url" content="https://YOUR-DOMAIN.com/privacy.html">
-<meta property="og:image" content="https://YOUR-DOMAIN.com/img/og-image.jpg">
+<meta property="og:description" content="How VectoFly handles data: Google Analytics, leaderboard scores, local storage, your rights under GDPR, UK GDPR, CCPA/CPRA and how to contact us.">
+<meta property="og:url" content="https://vectofly.com/privacy.html">
+<meta property="og:image" content="https://vectofly.com/img/og-image.jpg">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Privacy Policy - VectoFly">
-<meta name="twitter:description" content="VectoFly global privacy policy: what data the game uses, your rights under GDPR, UK GDPR, CCPA/CPRA and other laws, and how to contact us.">
-<meta name="twitter:image" content="https://YOUR-DOMAIN.com/img/og-image.jpg">
-<script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"VectoFly","item":"https://YOUR-DOMAIN.com/"},{"@type":"ListItem","position":2,"name":"Privacy Policy","item":"https://YOUR-DOMAIN.com/privacy.html"}]}</script>
+<meta name="twitter:description" content="How VectoFly handles data: Google Analytics, leaderboard scores, local storage, your rights under GDPR, UK GDPR, CCPA/CPRA and how to contact us.">
+<meta name="twitter:image" content="https://vectofly.com/img/og-image.jpg">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"VectoFly","item":"https://vectofly.com/"},{"@type":"ListItem","position":2,"name":"Privacy Policy","item":"https://vectofly.com/privacy.html"}]}</script>
+
+<!-- Google tag (gtag.js) -->
+<script>try{if(localStorage.getItem('vf_ga_off')==='1')window['ga-disable-G-LXSLC7ZVNW']=true;}catch(e){}</script>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-LXSLC7ZVNW"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-LXSLC7ZVNW');
+</script>
 <style>
-body{margin:0;font:17px/1.65 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;color:#2b2320;background:linear-gradient(#e4e0ba,#f7d9aa);min-height:100vh}
-.wrap{max-width:780px;margin:0 auto;padding:32px 20px 60px}
-h1{font-family:'Playfair Display',Georgia,serif;font-size:2.4em;line-height:1.15;margin:.2em 0 .4em;color:#59332e}
-h2{color:#59332e;margin-top:1.8em}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;font:17px/1.65 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;color:#2b2320;background:linear-gradient(#e4e0ba,#f7d9aa) fixed;min-height:100vh}
+.wrap{max-width:820px;margin:0 auto;padding:22px 18px 60px}
+header.site{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px 18px;padding-bottom:14px;border-bottom:1px solid rgba(89,51,46,.18);margin-bottom:6px}
+header.site a.brand{font:700 26px Georgia,'Playfair Display',serif;color:#f25346;text-decoration:none;letter-spacing:.5px}
+header.site nav{display:flex;flex-wrap:wrap;gap:2px 14px;font-size:15px}
+header.site nav a{color:#59332e;text-decoration:none;padding:4px 0}
+header.site nav a:hover,header.site nav a[aria-current]{color:#b4372b;text-decoration:underline}
+h1{font-family:'Playfair Display',Georgia,serif;font-size:clamp(1.9em,6vw,2.5em);line-height:1.15;margin:.7em 0 .3em;color:#59332e}
+h2{color:#59332e;margin:1.7em 0 .4em;font-size:1.3em;line-height:1.3}
+h3{color:#59332e;margin:1.2em 0 .2em;font-size:1.05em}
+p,li{overflow-wrap:anywhere}
 a{color:#b4372b}
-.play{display:inline-block;margin:14px 0 6px;padding:12px 28px;background:#f25346;color:#fff;border-radius:8px;text-decoration:none;font-weight:700}
-.card{background:rgba(255,255,255,.55);border-radius:10px;padding:16px 20px;margin:16px 0}
-nav.top a{margin-right:14px}
-footer{margin-top:40px;font-size:14px;line-height:2;opacity:.85}
+.play{display:inline-block;margin:14px 10px 6px 0;padding:13px 30px;background:#f25346;color:#fff;border-radius:10px;text-decoration:none;font-weight:700;box-shadow:0 3px 0 #b4372b}
+.play.alt{background:#68c3c0;box-shadow:0 3px 0 #3f8f8c}
+.card{background:rgba(255,255,255,.6);border-radius:12px;padding:14px 18px;margin:16px 0}
+.note{font-size:14px;opacity:.8}
+table{border-collapse:collapse;width:100%;margin:12px 0;font-size:15px}
+th,td{border:1px solid rgba(89,51,46,.25);padding:7px 10px;text-align:left;vertical-align:top}
+th{background:rgba(255,255,255,.55)}
+.scroll{overflow-x:auto}
+footer.site{margin-top:46px;padding-top:16px;border-top:1px solid rgba(89,51,46,.18);font-size:14px;line-height:2;opacity:.9}
+footer.site a{margin-right:12px;white-space:nowrap}
+@media (max-width:520px){body{font-size:16px}.wrap{padding:16px 14px 50px}header.site nav{font-size:14px}.play{display:block;text-align:center;margin-right:0}}
 </style>
 </head>
 <body>
 <div class="wrap">
-<nav class="top" aria-label="Breadcrumb"><a href="./">VectoFly</a> &rsaquo; Privacy Policy</nav>
+<header class="site"><a class="brand" href="./">VectoFly</a><nav aria-label="Main"><a href="index.html">Play</a><a href="how-to-play.html">How to play</a><a href="leaderboard.html">Leaderboard</a><a href="about.html">About</a><a href="contact.html">Contact</a></nav></header>
+
 <h1>Privacy Policy</h1>
-<p><em>Last updated: October 29, 2026</em></p>
-<p>VectoFly ("we", "us", "the Game") is a free browser game made and operated by a small team and played by people all over the world. This Privacy Policy explains what information is used when you play, and the rights you have wherever you live. By using the Game you agree to this policy.</p>
-<h2>1. Who is responsible for your data</h2>
-<p>The VectoFly team is the controller of the limited information described below. Contact for all privacy matters: <a href="mailto:itsvasudev404@gmail.com">itsvasudev404@gmail.com</a>.</p>
-<h2>2. Information stored on your device</h2>
-<p>The Game saves your settings (music and sound), difficulty, coins, unlocked planes, paints and maps, and your personal best scores in your browser's local storage. This stays on your device and is not sent to us. You can delete it any time by clearing your browser's site data.</p>
-<h2>3. Leaderboard information</h2>
-<p>If the global leaderboard is enabled and you finish a run, the Game sends the following to our score server: the pilot name you typed, your score, distance, level, the plane used, and a random anonymous player ID generated by the Game. The leaderboard publicly shows pilot names and scores to players worldwide. <strong>Please do not use your real name, email address or other personal details as a pilot name.</strong> We may remove names that are offensive or misleading.</p>
-<h2>4. Information we do not collect</h2>
-<p>No account is needed. We do not ask for your real name, address, phone number, precise location or payment details, and we do not knowingly collect sensitive personal data.</p>
-<h2>5. Server logs</h2>
-<p>Our hosting provider and score server may automatically record technical data such as IP address, browser and device type, pages requested and time of request. We use this for security, abuse prevention (for example, rate limiting score submissions) and keeping the service running.</p>
-<h2>6. Third-party services</h2>
-<p>The Game may load scripts or services from third parties, such as the CrazyGames SDK, fonts, hosting or CDN providers, and analytics or advertising partners if we add them. They may collect data under their own privacy policies. If we add analytics or ads, we will update this policy and our <a href="cookie-policy.html">Cookie Policy</a>, and show a consent choice where the law requires it. Third-party vendors such as Google may use cookies to serve ads based on your visits to this and other websites; you can opt out of personalised ads at <a href="https://www.google.com/settings/ads" rel="noopener" target="_blank">Google Ads Settings</a>.</p>
-<h2>7. Why we use information (legal bases)</h2>
-<p>Where laws such as the EU/UK GDPR apply, we rely on: <strong>legitimate interests</strong> (running the Game, showing the leaderboard, keeping it secure and preventing cheating and abuse); <strong>consent</strong> (for any non-essential cookies, analytics or personalised advertising, which you can withdraw at any time); and <strong>legal obligation</strong> where we must comply with the law. Essential local storage is needed for the Game to work.</p>
-<h2>8. We do not sell your information</h2>
-<p>We do not sell your personal information and we do not share it for cross-context behavioural advertising. We do not use automated decision-making that has legal or similarly significant effects on you.</p>
-<h2>9. International data transfers</h2>
-<p>The Game is available worldwide, and our hosting and score servers, and the third-party services we use, may be located in countries other than yours. By using the Game you understand your information may be processed in other countries. Where required, we use appropriate safeguards for transfers, such as standard contractual clauses offered by our providers.</p>
-<h2>10. Data retention</h2>
-<p>Local data stays on your device until you clear it. Leaderboard entries are kept until they drop off the stored list or you ask us to remove them. Server logs are kept only as long as needed for security and operations.</p>
-<h2>11. Your rights</h2>
-<p>Depending on where you live, you may have the right to:</p>
+<p class="note">Last updated: October 31, 2026 &middot; Applies to vectofly.com (the "Game", "we", "us")</p>
+<p>VectoFly is a free browser game. You do not need an account, and we collect as little as we can. This policy explains what is used when you play, why, who else is involved, and the choices and rights you have wherever you live. By playing you acknowledge this policy. Questions: <a href="mailto:contact@vectofly.com">contact@vectofly.com</a>.</p>
+
+<h2>1. Summary</h2>
+<div class="card"><ul>
+<li><strong>No account, no payments, no real name.</strong> You pick a pilot name (it can be anything, please do not use your real name).</li>
+<li><strong>Game progress</strong> (coins, planes, maps, settings, personal bests) is stored <strong>on your device</strong> in your browser's local storage.</li>
+<li><strong>Global leaderboard:</strong> your pilot name, score and a few run details are sent to our score server and shown publicly.</li>
+<li><strong>Google Analytics</strong> counts visits and shows us how the game is used, so we can fix problems. You can opt out any time (see section 5).</li>
+<li>We <strong>do not sell</strong> your information and we do not show ads or run advertising trackers at the moment.</li>
+</ul></div>
+
+<h2>2. Who is responsible</h2>
+<p>The VectoFly team operates the Game and decides how the information below is used (the "controller" under GDPR/UK GDPR). Contact for any privacy matter: <a href="mailto:contact@vectofly.com">contact@vectofly.com</a>.</p>
+
+<h2>3. Information we use</h2>
+<div class="scroll"><table>
+<tr><th>What</th><th>Why</th><th>Where it lives</th></tr>
+<tr><td><strong>Saved game data</strong>: settings, difficulty, coins, unlocked planes/paints/maps, personal bests, a random anonymous player ID, the pilot name you typed</td><td>Lets the game remember you and lets your leaderboard entry be updated instead of duplicated</td><td>Your browser's local storage (not sent to us, except the items in the next row)</td></tr>
+<tr><td><strong>Leaderboard submission</strong>: pilot name, score, distance, level, plane, difficulty, anonymous player ID, time of the run, a short signed run ticket and run statistics used to detect cheating</td><td>To show the world leaderboard and to keep it fair</td><td>Our database (Google Firebase Realtime Database), served through our API on Vercel. Your score and pilot name are <strong>public</strong></td></tr>
+<tr><td><strong>Visit and game counters</strong>: the anonymous player ID is counted once to show "pilots" and a total of games started</td><td>The counter at the bottom of the menu</td><td>Our database. The counter only shows totals</td></tr>
+<tr><td><strong>Analytics (Google Analytics 4)</strong>: pages viewed, approximate location (country/city level), device, browser, screen size, language, referring site, session length, random identifiers stored in cookies</td><td>To understand how many people play, which devices need fixes, and which pages help</td><td>Google Analytics (Google LLC / Google Ireland Ltd). See section 5</td></tr>
+<tr><td><strong>Technical logs</strong>: IP address, user agent, requested URL and time</td><td>Security, abuse prevention (for example rate-limiting score submissions) and keeping the site running</td><td>Our hosting provider (Vercel) and database provider (Google). Short-lived</td></tr>
+<tr><td><strong>Emails you send us</strong>: your address and what you write, plus device details if you use the "Report a bug / feedback" link</td><td>To answer you and fix issues</td><td>Our mailbox</td></tr>
+</table></div>
+<p>We do not ask for your real name, address, phone number, precise location, payment details or any sensitive personal data, and we do not knowingly collect them.</p>
+
+<h2>4. Leaderboard - what is public</h2>
+<p>The leaderboard shows your <strong>pilot name</strong> and <strong>best score</strong> to everyone, including people who are not playing. Choose a name you are comfortable sharing. Names that are offensive, impersonate others or contain personal information may be changed or removed. To have an entry removed, email us the pilot name and roughly when you played (see section 9).</p>
+
+<h2>5. Google Analytics and cookies</h2>
+<p>We use Google Analytics 4 (measurement ID G-LXSLC7ZVNW). It sets first-party cookies (usually named <code>_ga</code> and <code>_ga_LXSLC7ZVNW</code>) containing a random identifier so repeated visits can be recognised. Google Analytics 4 does not log or store full IP addresses. Data is used for statistics about the Game; we do not use it for advertising and we have not enabled advertising features. Analytics data is kept for the retention period configured in our account (up to 14 months).</p>
+<p><strong>Your choice:</strong> use the <em>Opt out</em> button in the notice shown on your first visit, or here: <button type="button" data-ga-optout style="padding:6px 14px;border-radius:8px;border:1px solid #59332e;background:#fff;cursor:pointer">Turn analytics off</button> <button type="button" data-ga-optin style="padding:6px 14px;border-radius:8px;border:1px solid #59332e;background:#fff;cursor:pointer">Turn analytics on</button> <span class="note" data-ga-status></span>. You can also block cookies in your browser, use Google's <a href="https://tools.google.com/dlpage/gaoptout" rel="noopener">browser add-on</a>, or enable a "Global Privacy Control" / "Do Not Track" setting. More on cookies: <a href="cookie-policy.html">Cookie Policy</a>.</p>
+
+<h2>6. Why we use information (legal bases)</h2>
+<p>Where the EU/UK GDPR applies we rely on: <strong>legitimate interests</strong> (running the Game, the leaderboard, security, preventing cheating and abuse, understanding usage); <strong>consent</strong> (analytics cookies, where required - you can withdraw it at any time with the opt-out above); and <strong>contract/steps at your request</strong> (answering your emails).</p>
+
+<h2>7. Who we share information with</h2>
 <ul>
-<li>know what personal data we hold about you and get a copy (access);</li>
-<li>correct or delete it, restrict or object to its use, and receive it in a portable format;</li>
-<li>withdraw consent at any time, without affecting earlier processing;</li>
-<li>opt out of the sale or sharing of personal information and of targeted advertising (we do neither);</li>
-<li>not be treated unfairly for exercising your rights;</li>
-<li>complain to your local data protection authority.</li>
+<li><strong>Service providers (processors)</strong> acting on our instructions: Vercel (hosting and serverless API), Google Firebase (database), Google Analytics (statistics). They process data under their own terms and privacy policies.</li>
+<li><strong>Optional platform scripts:</strong> the page may load the CrazyGames SDK for platform features. It may process technical data under its own privacy policy.</li>
+<li><strong>The public:</strong> your pilot name and best score on the leaderboard.</li>
+<li><strong>Authorities</strong> where the law requires it, or to protect the Game and its users from fraud or abuse.</li>
 </ul>
-<p>These rights come from laws such as the EU and UK GDPR, the California CCPA/CPRA and other US state privacy laws, Brazil's LGPD, Canada's PIPEDA, Australia's Privacy Act, Singapore's PDPA, India's Digital Personal Data Protection Act and similar laws. To use any right, email <a href="mailto:itsvasudev404@gmail.com">itsvasudev404@gmail.com</a> with your pilot name and approximate score so we can find your leaderboard entry. We will reply within the time the law requires (usually 30 days). Because the Game uses an anonymous player ID and no account, we may need that information to identify your entry.</p>
-<h2>12. Do Not Track and Global Privacy Control</h2>
-<p>Since we do not sell or share personal information or track you across sites, we treat browser signals such as Do Not Track and Global Privacy Control as being respected by default.</p>
-<h2>13. Children's privacy</h2>
-<p>VectoFly is a general-audience game and is not directed at children under 13 (or under the higher digital-consent age in your country, which can be up to 16). We do not knowingly collect personal information from children. If you believe a child has provided personal information, for example in a pilot name, email <a href="mailto:itsvasudev404@gmail.com">itsvasudev404@gmail.com</a> and we will delete it.</p>
-<h2>14. Security</h2>
-<p>We take reasonable steps to protect the leaderboard service, but no method of transmission or storage on the internet is completely secure.</p>
-<h2>15. Changes to this policy</h2>
-<p>We may update this policy as the Game or the law changes. The "Last updated" date shows the latest version. Material changes will be highlighted on this page.</p>
-<h2>16. Contact</h2>
-<p>Questions or requests: <a href="mailto:itsvasudev404@gmail.com">itsvasudev404@gmail.com</a></p>
-<footer><nav aria-label="Footer"><a href="./">Play</a> &middot; <a href="how-to-play.html">How to play</a> &middot; <a href="about.html">About</a> &middot; <a href="contact.html">Contact</a> &middot; <a href="privacy.html">Privacy Policy</a> &middot; <a href="terms.html">Terms &amp; Conditions</a> &middot; <a href="cookie-policy.html">Cookie Policy</a> &middot; <a href="disclaimer.html">Disclaimer</a> &middot; <a href="dmca.html">DMCA</a></nav><p>&copy; 2026 VectoFly. Made and operated by a small team.</p></footer>
+<p>We do not sell personal information and we do not share it for cross-context behavioural advertising. We do not make automated decisions with legal or similarly significant effects. (The anti-cheat system may reject an implausible score; you can contact us if you believe it was a mistake.)</p>
+
+<h2>8. International transfers</h2>
+<p>Our providers operate globally, so information may be processed in countries other than yours, including the United States. Where required we rely on safeguards such as the EU-US Data Privacy Framework or Standard Contractual Clauses offered by those providers.</p>
+
+<h2>9. Your rights and how to use them</h2>
+<p>Depending on where you live (for example the EU/UK, California, Brazil, Canada, Australia, India) you may have the right to: access your information; correct it; delete it; restrict or object to processing; receive a copy (portability); withdraw consent; and complain to your local data protection authority. California residents can also ask what categories are collected and opt out of "sale" or "sharing" - we do neither. We will not treat you differently for using these rights.</p>
+<p><strong>How:</strong> email <a href="mailto:contact@vectofly.com">contact@vectofly.com</a> with the pilot name you used (and approximately when you played) so we can find your leaderboard entry. We will reply within 30 days. We may need to confirm that the request really comes from you. Because we cannot identify you from a random player ID alone, entries are matched using the pilot name and details only you would know. You can also delete everything stored on your device by clearing this site's data in your browser.</p>
+
+<h2>10. Retention</h2>
+<ul>
+<li>Local game data: stays on your device until you clear it.</li>
+<li>Leaderboard entries: kept while the entry is on the board, or until you ask us to remove it. Old, low-ranking entries may be pruned automatically.</li>
+<li>Single-use run tickets: deleted automatically within hours.</li>
+<li>Analytics: up to 14 months. Technical logs: normally weeks, not longer than needed for security.</li>
+<li>Emails: as long as needed to deal with your message, then deleted or archived.</li>
+</ul>
+
+<h2>11. Children</h2>
+<p>VectoFly is a general-audience game and is not directed at children under 13 (or the higher digital-consent age in your country, which can be up to 16). We do not knowingly collect personal information from children. If you are a parent and believe a child gave us personal information (for example a real name as a pilot name), email us and we will remove it.</p>
+
+<h2>12. Security</h2>
+<p>The database is locked: browsers cannot read or write it directly, only our API can, and scores must carry a valid signed ticket. No system is perfectly secure, so please do not put personal information in your pilot name.</p>
+
+<h2>13. External links</h2>
+<p>Our pages may link to other sites. We are not responsible for their content or privacy practices.</p>
+
+<h2>14. Changes</h2>
+<p>We may update this policy as the Game changes (for example if we add ads). The date at the top shows the latest version, and significant changes will be highlighted on the site.</p>
+
+<h2>15. Contact</h2>
+<p><a href="mailto:contact@vectofly.com">contact@vectofly.com</a></p>
+<p><a class="play" href="./">Play VectoFly</a></p>
+<footer class="site">
+<div><a href="index.html">Play</a> <a href="how-to-play.html">How to play</a> <a href="leaderboard.html">Leaderboard</a> <a href="about.html">About</a> <a href="contact.html">Contact</a> <a href="privacy.html">Privacy</a> <a href="terms.html">Terms</a> <a href="cookie-policy.html">Cookies</a> <a href="disclaimer.html">Disclaimer</a> <a href="dmca.html">DMCA</a></div>
+<div>&copy; 2026 VectoFly &middot; <a href="https://vectofly.com/">vectofly.com</a> &middot; <a href="mailto:contact@vectofly.com">contact@vectofly.com</a> &middot; <a href="mailto:contact@vectofly.com?subject=VectoFly%20bug%20report%20or%20feedback" data-feedback>Report a bug / send feedback</a></div>
+</footer>
 </div>
+<script src="js/site.js?v=8" defer></script>
 </body>
 </html>

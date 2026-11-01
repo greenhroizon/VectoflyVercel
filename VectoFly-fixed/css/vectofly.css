@@ -100,21 +100,6 @@ ol li i{opacity:.9}
 #diffNote{font-size:11px;opacity:.7;margin:0 0 8px}
 
 
-/* ---- on-screen flight controls (shown while flying, on every device) ---- */
-#ctl{position:absolute;left:0;right:0;bottom:0;display:none;justify-content:flex-end;align-items:flex-end;z-index:7;pointer-events:none;
-  padding:0 max(14px,env(safe-area-inset-right)) max(16px,env(safe-area-inset-bottom)) max(14px,env(safe-area-inset-left))}
-body.playing #ctl{display:flex}
-#ctl .grp{display:flex;gap:12px}
-#ctl .grp.stack{flex-direction:column}
-#ctl button{pointer-events:auto;touch-action:none;-webkit-touch-callout:none;-webkit-user-select:none;user-select:none;
-  position:relative;width:clamp(68px,16vmin,100px);height:clamp(68px,16vmin,100px);padding:0;border-radius:50%;border:3px solid rgba(255,246,226,.85);
-  background:rgba(35,25,15,.5);color:#fff6e2;font-family:Georgia,serif;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;
-  box-shadow:0 4px 14px rgba(0,0,0,.3);-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);transition:transform .06s,background .06s}
-#ctl button span{font-size:clamp(22px,6vmin,34px);line-height:1}
-#ctl button small{font-size:clamp(8px,1.7vmin,11px);letter-spacing:1px;text-transform:uppercase;opacity:.8;margin-top:2px}
-#ctl button.down{background:rgba(242,83,70,.88);transform:scale(.93)}
-@media (hover:hover) and (pointer:fine) and (min-width:900px){#ctl button{opacity:.8}}
-
 /* while flying on a phone: drop the big title, keep the score HUD clear of the level ring, tuck the live board under it */
 @media (max-width:40em){
   .playing .header h1,.playing .header h2{display:none}
@@ -125,7 +110,6 @@ body.playing #ctl{display:flex}
   .playing .header h1,.playing .header h2{display:none}
   .playing #live{top:max(8px,env(safe-area-inset-top));bottom:auto;width:128px}
   .playing .header{top:max(40px,calc(env(safe-area-inset-top) + 36px))}
-  #ctl{padding-bottom:max(10px,env(safe-area-inset-bottom))}
 }
 @media (max-height:520px) and (max-width:40em){.playing #live{top:calc(max(40px,env(safe-area-inset-top) + 36px) + 70px)}}
 /* menus: use the real visible height on mobile browsers (address bar), fit tiny screens */
@@ -155,8 +139,58 @@ body.playing #visitors{display:none!important}
 @keyframes warnPulse{from{transform:scale(.88);opacity:.75}to{transform:scale(1.08);opacity:1}}
 
 /* touch quality: bigger invisible hit area on the buttons, no browser gestures while flying */
-#ctl button::after{content:'';position:absolute;inset:-12px;border-radius:50%}
-body.nobtns #ctl{display:none!important}
 html{overscroll-behavior:none}
 body.playing,body.playing *{touch-action:none;-webkit-touch-callout:none}
 .opts{display:flex;flex-wrap:wrap;justify-content:center;gap:2px 6px}
+.card{position:relative}
+.freeTag{position:absolute;top:6px;right:6px;background:#5fb86a;color:#fff;font:700 10px system-ui,sans-serif;letter-spacing:.8px;padding:2px 7px;border-radius:8px;z-index:2}
+
+/* ======== MAIN MENU: responsive for every screen (v7) ======== */
+#panel{overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;touch-action:pan-y;overscroll-behavior:contain;align-items:flex-start;justify-content:center;
+  padding:max(10px,env(safe-area-inset-top)) max(10px,env(safe-area-inset-right)) max(54px,env(safe-area-inset-bottom)) max(10px,env(safe-area-inset-left))}
+#panel .box{width:min(460px,100%);max-height:none;overflow:visible;margin:auto;padding:clamp(12px,3.4vw,22px);box-shadow:0 10px 40px rgba(0,0,0,.35)}
+#panel .box h2{font-size:clamp(26px,7.5vw,38px);line-height:1.1}
+#panel .box p{font-size:clamp(12px,3.4vw,14px);margin:4px 0 10px}
+#panel .colA,#panel .colB,#panel .mh,#panel .mf{min-width:0}
+#nameIn{box-sizing:border-box;width:100%;max-width:340px;padding:10px;font-size:16px;margin:2px 0 8px}
+#diffRow{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin:2px 0}
+#diffRow button{padding:9px 2px;min-height:40px;font-size:clamp(11px,3.3vw,13px)}
+#diffNote{font-size:12px;opacity:.75;margin:4px 0 8px}
+#playBtn{min-height:52px;font-size:clamp(17px,5vw,20px);box-shadow:0 4px 0 #b4372b}
+#playBtn:active{transform:translateY(2px);box-shadow:0 2px 0 #b4372b}
+.row2 button{min-height:44px}
+#wallet{margin:10px 0 2px}
+#goal{font-size:12px;color:#59332e;opacity:.85;margin:0 0 6px}
+#gift{margin:2px auto 8px;padding:7px 12px;border-radius:10px;background:#ffe9a0;color:#7a4a00;font-size:13px;font-weight:700;display:inline-block}
+#gift[hidden]{display:none}
+.lbwrap{margin-top:6px}
+#lbTitle{margin:6px 0 0}
+#topList{margin:6px 0;max-height:clamp(150px,30vh,320px);overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y;overscroll-behavior:contain;font-size:clamp(12px,3.4vw,14px);line-height:1.6;padding:6px 8px}
+#topList li{display:flex;gap:6px;align-items:baseline}
+#fullBoard{display:inline-block;margin:2px 0 6px;font-size:13px;font-weight:700;color:#b4372b}
+#lbNote{font-size:12px;opacity:.8;min-height:1em}
+.opts{margin-top:6px;display:flex;flex-wrap:wrap;justify-content:center;gap:4px 12px}.opts label{margin:0;min-height:30px;display:inline-flex;align-items:center;gap:4px}
+.mf{margin-top:8px}
+.mf .fb{display:inline-block;margin:2px 0 6px;padding:7px 14px;border-radius:999px;border:1px solid rgba(89,51,46,.35);color:#59332e;text-decoration:none;font-size:13px;font-weight:700;background:rgba(255,255,255,.5)}
+.legal{font-size:11px;line-height:1.9;opacity:.8}.legal a{color:#59332e;white-space:nowrap}
+.help,.credit{font-size:11px;opacity:.65;margin-top:6px}
+/* big screens and landscape phones: two columns so the Play button and the leaderboard are both visible without scrolling */
+@media (min-width:760px) and (min-height:470px),(min-width:620px) and (max-height:520px){
+  #panel .box{width:min(880px,100%);display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:4px clamp(14px,3vw,30px);align-items:start}
+  #panel .mh,#panel .mf{grid-column:1/-1}
+  #topList{max-height:clamp(140px,38vh,360px)}
+}
+@media (max-height:520px){
+  #panel{padding-bottom:max(46px,env(safe-area-inset-bottom))}
+  #panel .box{padding:8px 14px}#panel .box h2{font-size:24px}#panel .box p{margin:1px 0 4px;font-size:11px}
+  #nameIn{padding:6px;margin-bottom:4px}#diffRow button{min-height:34px;padding:6px 2px}#diffNote{margin:2px 0 4px}
+  #playBtn{min-height:42px;font-size:16px}.row2 button{min-height:36px}#wallet{margin:6px 0 0}
+  #topList{max-height:110px}.help,.credit{display:none}.mf{margin-top:2px}.mf .fb{padding:4px 12px;margin:0 0 2px}
+}
+@media (max-width:360px){#panel .box{padding:10px}#diffRow{gap:3px}.legal{font-size:10px}}
+/* the Hangar / Maps shop also fits phones */
+#shop{overflow-y:auto;align-items:flex-start;padding:max(10px,env(safe-area-inset-top)) 10px max(14px,env(safe-area-inset-bottom))}
+#shop .box{margin:auto;max-height:none;overflow:visible}
+#grid{grid-template-columns:repeat(auto-fill,minmax(min(150px,44%),1fr));max-height:56vh}
+@supports (height:100dvh){#grid{max-height:56dvh}}
+@media (max-width:420px){#grid{gap:6px}.card{padding:6px;font-size:11px}}

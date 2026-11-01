@@ -12,6 +12,14 @@ var particlesPool = [];
 // world scrolling: how many world units the ground / obstacles move per (speed * millisecond)
 var K_SCROLL = 420;
 var SPAWN_X = 470, DESPAWN_X = -340;
+// XS squeezes the world horizontally on narrow (portrait) screens. A phone shows far less width than a monitor, so the world scrolls
+// slower and spawns closer: you get the same reaction time, and everything is bigger on screen. Scoring is not affected.
+var XS = 1;
+function updateXS(){
+  var a = (WIDTH||1) / (HEIGHT||1);
+  XS = Math.max(.5, Math.min(1, .5 + (a - .46)*.6));
+  SPAWN_X = Math.round(470*XS); DESPAWN_X = Math.round(-340*XS);
+}
 var dxFrame = 0;                                  // world units scrolled this frame
 
 function resetGame(){
@@ -63,7 +71,7 @@ function resetGame(){
           ennemiesSpeed:1,
           ennemyLastSpawn:0,
           distanceForEnnemiesSpawn:48, spawnStart:48, spawnMin:30, spawnStep:2.5, waveBase:2,
-          safeLane:3, waveN:0, idleMs:0, idleY:100, forceSeek:false, reason:"",
+          safeLane:3, waveN:0, idleMs:0, idleY:100, forceSeek:false, dda:1, hitSinceWave:false, gatePlan:null, sinceSeek:0, lastKind:'', reason:"",
           fuel:100, fuelBase:.075, fuelPerLevel:.004, fuelEff:1, fuelValue:40, fuelLastSpawn:0, distanceForFuelSpawn:450,
           maxBaseSpeed:.0011,
           speedPerMeter:.00000012,
@@ -95,7 +103,7 @@ function createScene() {
   WIDTH = window.innerWidth;
 
   scene = new THREE.Scene();
-  aspectRatio = WIDTH / HEIGHT;
+  aspectRatio = WIDTH / HEIGHT; updateXS();
   fieldOfView = 50;
   nearPlane = .1;
   farPlane = 10000;
@@ -131,7 +139,7 @@ function handleWindowResize() {
   HEIGHT = window.innerHeight;
   WIDTH = window.innerWidth;
   renderer.setSize(WIDTH, HEIGHT);
-  aspectRatio = camera.aspect = WIDTH / HEIGHT;
+  aspectRatio = camera.aspect = WIDTH / HEIGHT; updateXS();
   camera.updateProjectionMatrix();
 }
 
@@ -140,13 +148,12 @@ function handleWindowResize() {
 // Touch: RELATIVE drag. Put a thumb anywhere and slide: the plane moves by the amount you slide, so your thumb never hides the plane,
 // there is no jump when you touch down, and a small thumb movement covers the whole height. Hold the on-screen buttons for fine moves.
 var lastTouchT = 0, steer = null;
-function onPad(t){ return !!(t && t.closest && t.closest('#ctl')); }
+function onPad(t){ return false; }
 function clamp1(v){ return Math.max(-1, Math.min(1, v)); }
 
 function handleMouseMove(event) {
   if (Date.now() - lastTouchT < 900) return;          // browsers fire fake mouse events after a tap: ignore them
   if (window.VF) VF.touching = false;
-  if (onPad(event.target) || (window.VF && VF.padHeld && VF.padHeld())) return;   // steering with the buttons: ignore the pointer
   var tx = -1 + (event.clientX / WIDTH)*2;
   var ty = 1 - (event.clientY / HEIGHT)*2;
   mousePos = {x:tx, y:ty};
@@ -169,7 +176,6 @@ function handleTouchMove(e){
   var t = null;
   for (var i=0;i<e.touches.length;i++){ if (e.touches[i].identifier===steer.id){ t = e.touches[i]; break; } }
   if (!t) return;
-  if (window.VF && VF.padHeld && VF.padHeld()){ steer.px=t.clientX; steer.py=t.clientY; steer.mx=mousePos.x; steer.my=mousePos.y; return; }   // buttons win; re-anchor so nothing jumps afterwards
   var ry = Math.max(170, Math.min(300, HEIGHT*.38)),   // finger travel (px) that covers the full height
       rx = Math.max(200, Math.min(380, WIDTH*.45));    // horizontal travel is gentler: it only changes speed
   mousePos = {x: clamp1(steer.mx + (t.clientX-steer.px)*2/rx), y: clamp1(steer.my - (t.clientY-steer.py)*2/ry)};
@@ -327,7 +333,7 @@ Ennemy = function(){
   });
   this.mesh = new THREE.Mesh(geom,mat);
   this.mesh.castShadow = true;
-  this.x = 0; this.y = 0; this.y0 = 0; this.seek = false; this.locked = false; this.bob = 0; this.ph = 0;
+  this.x = 0; this.y = 0; this.y0 = 0; this.seek = false; this.locked = false; this.bob = 0; this.ph = 0; this.minD = 999; this.passed = false;
 }
 // reset a pooled spike to a normal red one, or to an orange homing "seeker"
 Ennemy.prototype.setKind = function(seek){
@@ -345,7 +351,7 @@ EnnemiesHolder = function (){
 EnnemiesHolder.prototype.add = function(x, y, seek){
   var ennemy = ennemiesPool.length ? ennemiesPool.pop() : new Ennemy();
   ennemy.setKind(!!seek);
-  ennemy.x = x; ennemy.y = y; ennemy.y0 = y;
+  ennemy.x = x; ennemy.y = y; ennemy.y0 = y; ennemy.minD = 999; ennemy.passed = false;
   ennemy.mesh.position.set(x, y, 0);
   this.mesh.add(ennemy.mesh);
   this.ennemiesInUse.push(ennemy);
@@ -358,37 +364,82 @@ EnnemiesHolder.prototype.spawnSeekers = function(n){
   var py = airplane.mesh.position.y;
   for (var k=0;k<n;k++){
     var y = Math.max(18, Math.min(182, py + (k ? (Math.random()<.5 ? -1 : 1)*30 : 0)));
-    this.add(SPAWN_X + k*70, y, true);
+    this.add(SPAWN_X + k*70*XS, y, true);
   }
 }
 
-// Waves. The safe gate moves at most 2 lanes (1 when it gets fast), so every wave is always beatable.
-//   scatter = spikes in random lanes (some bob up and down later on)   wall = a full column with one gate
-//   comb    = every other lane blocked, fly through the gaps           seeker = homing spikes
+// ---------- THE DIRECTOR: decides when, what and where to spawn ----------
+// 1. Fair timing: waves never come closer than ~0.8 s apart (more on touch), however fast you fly.
+// 2. Reachable gates: the gap in each wave moves only as far as the plane can follow in the time available, and follows readable
+//    "phrases" (stairs, zig-zag, free) so there is a rhythm to learn instead of noise.
+// 3. Adaptive: do well and waves get fuller, get hit and the next ones ease off (game.dda between .7 and 1.3).
+// 4. Aware: spikes avoid pills and fuel cans, a breather follows every wall/comb/homing spike, and standing still is punished.
+function touchy(){ return (typeof isMobile !== 'undefined' && isMobile) || !!(window.VF && VF.touching); }
+function waveGapDistance(){
+  var minMs = touchy() ? 950 : 780;                                             // minimum time between waves
+  var minD = minMs * Math.max(game.speed, .0003) * 50;                          // distance flown in that time (distance += speed*ms*50)
+  return Math.max(game.distanceForEnnemiesSpawn / Math.max(.8, Math.min(1.25, game.dda)), minD);
+}
+function pickupNear(x, y){
+  var i, c = coinsHolder.coinsInUse, f = fuelHolder.inUse;
+  for (i=0;i<c.length;i++) if (Math.abs(c[i].x - x) < 55*XS+10 && Math.abs(c[i].y - y) < 24) return true;
+  for (i=0;i<f.length;i++) if (Math.abs(f[i].x - x) < 55*XS+10 && Math.abs(f[i].y - y) < 28) return true;
+  return false;
+}
+function nextGate(step){
+  var s0 = game.safeLane, p = game.gatePlan, t = s0;
+  if (!p || p.left <= 0){
+    var r = Math.random();
+    p = game.gatePlan = r < .4 ? {kind:'stairs', dir:(Math.random()<.5 ? 1 : -1), left:3 + Math.floor(Math.random()*3)}
+      : r < .7 ? {kind:'zig', dir:(Math.random()<.5 ? 1 : -1), left:4}
+      : {kind:'free', dir:0, left:2 + Math.floor(Math.random()*3)};
+  }
+  p.left--;
+  if (p.kind === 'stairs'){ t = s0 + p.dir; if (t < 0 || t >= LANES){ p.dir = -p.dir; t = s0 + p.dir; } }
+  else if (p.kind === 'zig'){ t = s0 + p.dir*Math.min(step,2); p.dir = -p.dir; if (t < 0 || t >= LANES) t = s0 + (s0 - t); }
+  else t = s0 + Math.floor(Math.random()*(step*2+1)) - step;
+  return clampLane(t);
+}
+
 EnnemiesHolder.prototype.spawnEnnemies = function(){
-  game.waveN++;
-  var lvl = game.level;
-  if (game.forceSeek || game.waveN % (lvl < 3 ? 4 : 3) === 0){
-    game.forceSeek = false; game.idleMs = 0;
-    this.spawnSeekers(lvl >= 6 && Math.random() < .5 ? 2 : 1);
+  game.waveN++; game.sinceSeek++;
+  var lvl = game.level, skill = Math.max(.7, Math.min(1.3, game.dda));
+  // learn by doing: the dda rises while you play clean, falls when you are hit
+  if (!game.hitSinceWave) game.dda = Math.min(1.3, game.dda + .025);
+  game.hitSinceWave = false;
+  var seekGap = lvl < 3 ? 5 : 4;
+  if (game.waveN >= 3 && (game.forceSeek || (game.waveN >= 6 && game.sinceSeek >= seekGap && game.lastKind !== 'wall'))){
+    game.forceSeek = false; game.idleMs = 0; game.sinceSeek = 0; game.lastKind = 'seek';
+    this.spawnSeekers(lvl >= 6 && skill > 1 && Math.random() < .5 ? 2 : 1);
     return;
   }
-  var step = game.distanceForEnnemiesSpawn < 38 ? 1 : 2;
-  var s = clampLane(game.safeLane + Math.floor(Math.random()*(step*2+1)) - step);
+  var gapMs = waveGapDistance() / (Math.max(game.speed, .0003)*50);
+  var step = (gapMs < 560 || (touchy() && lvl < 5) || lvl < 3) ? 1 : 2;
+  var s = nextGate(step);
   game.safeLane = s;
+  var rest = (game.lastKind === 'wall' || game.lastKind === 'comb' || game.lastKind === 'seek');   // breather after a hard wave
   var r = Math.random(), kind = 'scatter', i, lane;
-  if (lvl >= 2) kind = r < .3 ? 'wall' : (r < .5 && s%2===1) ? 'comb' : 'scatter';
+  if (lvl >= 2 && !rest){
+    var wallP = .2 + .08*(skill - 1)/.3;
+    kind = r < wallP ? 'wall' : (r < wallP + .18 && s % 2 === 1) ? 'comb' : 'scatter';
+  }
+  game.lastKind = kind;
   if (kind === 'wall'){
-    var gate2 = lvl < 5 ? (s < LANES-1 ? s+1 : s-1) : -1;            // early on the gate is two lanes wide
+    var gate2 = (lvl < 5 || skill < .9) ? (s < LANES-1 ? s+1 : s-1) : -1;       // early on (or when struggling) the gate is two lanes wide
     for (lane=0; lane<LANES; lane++){ if (lane!==s && lane!==gate2) this.add(SPAWN_X, laneY(lane), false); }
   } else if (kind === 'comb'){
     for (lane=0; lane<LANES; lane+=2) this.add(SPAWN_X, laneY(lane), false);
   } else {
-    var n = Math.min(3 + Math.floor(lvl/2), 5);
+    var n = Math.round((2 + lvl*.5) * skill) - (rest ? 1 : 0);
+    n = Math.max(2, Math.min(touchy() ? 4 : 5, n));
+    var used = {};
     for (i=0; i<n; i++){
-      do { lane = Math.floor(Math.random()*LANES); } while (lane===s);
-      var e = this.add(SPAWN_X + i*60, laneY(lane), false);
-      if (lvl >= 3 && Math.abs(lane-s) >= 2 && Math.random() < .35){ e.bob = 12 + Math.random()*8; e.ph = Math.random()*6.28; }
+      var tries = 0, x = SPAWN_X + i*60*XS;
+      do { lane = Math.floor(Math.random()*LANES); tries++; } while ((lane===s || used[lane] || pickupNear(x, laneY(lane))) && tries < 12);
+      if (lane===s || used[lane] || pickupNear(x, laneY(lane))) continue;
+      used[lane] = 1;
+      var e = this.add(x, laneY(lane), false);
+      if (lvl >= 3 && Math.abs(lane-s) >= 2 && Math.random() < .35*skill){ e.bob = 12 + Math.random()*8; e.ph = Math.random()*6.28; }
     }
   }
 }
@@ -415,7 +466,13 @@ EnnemiesHolder.prototype.rotateEnnemies = function(){
 
     var diffPos = airplane.mesh.position.clone().sub(ennemy.mesh.position);
     var d = diffPos.length();
-    if (d<game.ennemyDistanceTolerance*(ennemy.seek ? 1.15 : 1) && game.status=="playing"){
+    var tolE = game.ennemyDistanceTolerance*(ennemy.seek ? 1.15 : 1);
+    if (game.status=="playing"){
+      if (d < ennemy.minD) ennemy.minD = d;
+      // close call: it passed the plane without a hit but only just
+      if (!ennemy.passed && ennemy.x < airplane.mesh.position.x - 6){ ennemy.passed = true; if (ennemy.minD >= tolE && ennemy.minD < tolE + 7) VF.onNearMiss(); }
+    }
+    if (d<tolE && game.status=="playing"){
       particlesHolder.spawnParticles(ennemy.mesh.position.clone(), 15, ennemy.seek ? 0xff8a1f : Colors.red, 3);
 
       ennemiesPool.unshift(this.ennemiesInUse.splice(i,1)[0]);
@@ -425,6 +482,7 @@ EnnemiesHolder.prototype.rotateEnnemies = function(){
       ambientLight.intensity = 2;
 
       addDamage(); VF.onHit(); hitFlash();
+      game.hitSinceWave = true; game.dda = Math.max(.7, game.dda - .12);
       i--;
     }else if (ennemy.x < DESPAWN_X){
       ennemiesPool.unshift(this.ennemiesInUse.splice(i,1)[0]);
@@ -520,7 +578,7 @@ CoinsHolder.prototype.spawnCoins = function(){
   var lane = game.safeLane, amplitude = 8 + Math.round(Math.random()*5);
   if (Math.random() < .5){
     var cand = Math.floor(Math.random()*LANES), amp = 12 + Math.round(Math.random()*26);
-    if (laneClear(laneY(cand), amp + 26, SPAWN_X - 90, SPAWN_X + 220)){ lane = cand; amplitude = amp; }
+    if (laneClear(laneY(cand), amp + 26, SPAWN_X - 90*XS, SPAWN_X + 220*XS)){ lane = cand; amplitude = amp; }
   }
   var d = laneY(lane);
   for (var i=0; i<nCoins; i++){
@@ -532,7 +590,7 @@ CoinsHolder.prototype.spawnCoins = function(){
     }
     this.mesh.add(coin.mesh);
     this.coinsInUse.push(coin);
-    coin.x = SPAWN_X + i*14;
+    coin.x = SPAWN_X + i*14*XS;
     coin.y = Math.max(16, Math.min(184, d + Math.cos(i*.5)*amplitude));
     coin.mesh.position.set(coin.x, coin.y, 0);
   }
@@ -579,7 +637,7 @@ FuelHolder = function(){ this.mesh = new THREE.Object3D(); this.inUse = []; this
 FuelHolder.prototype.spawn = function(){
   var f = this.pool.length ? this.pool.pop() : new Fuel();
   var fl = game.safeLane;
-  if (Math.random() < .6){ var c = Math.floor(Math.random()*LANES); if (laneClear(laneY(c), 40, SPAWN_X - 90, SPAWN_X + 120)) fl = c; }
+  if (Math.random() < .6){ var c = Math.floor(Math.random()*LANES); if (laneClear(laneY(c), 40, SPAWN_X - 90*XS, SPAWN_X + 120*XS)) fl = c; }
   f.x = SPAWN_X; f.y = laneY(fl);
   f.mesh.position.set(f.x, f.y, 0);
   this.mesh.add(f.mesh); this.inUse.push(f);
@@ -711,7 +769,7 @@ function loop(){
 
   if (game.status=="playing"){
 
-    if (game.distance-game.ennemyLastSpawn >= game.distanceForEnnemiesSpawn){ game.ennemyLastSpawn=game.distance; ennemiesHolder.spawnEnnemies(); }
+    if (game.distance-game.ennemyLastSpawn >= waveGapDistance()){ game.ennemyLastSpawn=game.distance; ennemiesHolder.spawnEnnemies(); }
     if (game.distance-game.coinLastSpawn >= game.distanceForCoinsSpawn){ game.coinLastSpawn=game.distance; coinsHolder.spawnCoins(); }
     if (game.distance-game.fuelLastSpawn >= game.distanceForFuelSpawn){ game.fuelLastSpawn=game.distance; fuelHolder.spawn(); }
     var lv = 1+Math.floor(game.distance/game.distanceForLevelUpdate);
@@ -756,7 +814,7 @@ function loop(){
     game.speed *= Math.pow(.96, deltaTime/16.7);
   }
 
-  dxFrame = game.speed*deltaTime*K_SCROLL;
+  dxFrame = game.speed*deltaTime*K_SCROLL*XS;
   World.update(dxFrame, deltaTime);
 
   airplane.propeller.rotation.x +=.2 + game.planeSpeed * deltaTime*.005;
@@ -813,11 +871,20 @@ function endRun(reason){
 }
 
 
+// vertical field of view: wide screens keep the classic 46-72 degrees. Narrow screens use the angle that shows exactly the squeezed width
+// (about 165*XS world units either side), so the plane and spikes stay big instead of being stretched by a huge fish-eye FOV.
+function cameraFov(){
+  var k = normalize(mousePos.x,-1,1,.8,1.2);
+  if (aspectRatio >= 1.33) return normalize(mousePos.x,-1,1,46,72);
+  var half = (165*XS)/aspectRatio, deg = 2*Math.atan(half/200)*180/Math.PI;
+  return Math.max(40, Math.min(105, deg*k));
+}
+
 function updatePlane(){
 
   game.planeSpeed = normalize(mousePos.x,-.5,.5,game.planeMinSpeed, game.planeMaxSpeed);
   var targetY = normalize(mousePos.y,-.75,.75,game.planeDefaultHeight-game.planeAmpHeight, game.planeDefaultHeight+game.planeAmpHeight);
-  var targetX = normalize(mousePos.x,-1,1,-game.planeAmpWidth*.7, -game.planeAmpWidth);
+  var targetX = normalize(mousePos.x,-1,1,-game.planeAmpWidth*.7*XS, -game.planeAmpWidth*XS);
 
   game.planeCollisionDisplacementX += game.planeCollisionSpeedX;
   targetX += game.planeCollisionDisplacementX;
@@ -826,7 +893,7 @@ function updatePlane(){
   game.planeCollisionDisplacementY += game.planeCollisionSpeedY;
   targetY += game.planeCollisionDisplacementY;
 
-  var sens = game.planeMoveSensivity * ((window.VF && (VF.touching || VF.padHeld())) ? 1.8 : 1);   // touch and buttons: quicker response
+  var sens = game.planeMoveSensivity * ((window.VF && VF.touching) ? 1.8 : 1);   // touch: quicker response
   airplane.mesh.position.y += (targetY-airplane.mesh.position.y)*deltaTime*sens;
   airplane.mesh.position.x += (targetX-airplane.mesh.position.x)*deltaTime*sens;
 
@@ -834,7 +901,7 @@ function updatePlane(){
   airplane.mesh.rotation.x = (airplane.mesh.position.y-targetY)*deltaTime*game.planeRotZSensivity;
   // a badly damaged plane shudders
   if (game.damage > 60){ var j = (game.damage-60)/40*.05; airplane.mesh.rotation.z += (Math.random()-.5)*j; airplane.mesh.rotation.x += (Math.random()-.5)*j; }
-  camera.fov = Math.min(110, normalize(mousePos.x,-1,1,46,72) * (aspectRatio<1 ? 1+(1-aspectRatio)*.9 : 1));
+  camera.fov = cameraFov();
   camera.updateProjectionMatrix ()
   camera.position.y += (airplane.mesh.position.y - camera.position.y)*deltaTime*game.cameraSensivity;
 

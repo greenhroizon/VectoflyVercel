@@ -85,11 +85,10 @@ function cleanName(n) {
   n = String(n == null ? '' : n).replace(/[\u0000-\u001f\u007f<>&"'`\\]/g, '').replace(/\s+/g, ' ').trim().slice(0, 12);
   return n || 'Pilot';
 }
-function send(res, code, obj) {
+function send(res, code, obj, cache) {
   res.status(code);
-  res.setHeader('Cache-Control', 'no-store, max-age=0');
-  res.setHeader('CDN-Cache-Control', 'no-store');
-  res.setHeader('Vercel-CDN-Cache-Control', 'no-store');
+  res.setHeader('Cache-Control', cache ? 'public, max-age=0, s-maxage=' + cache + ', stale-while-revalidate=' + cache*2 : 'no-store, max-age=0');
+  if (!cache){ res.setHeader('CDN-Cache-Control', 'no-store'); res.setHeader('Vercel-CDN-Cache-Control', 'no-store'); }
   res.setHeader('Access-Control-Allow-Origin', ALLOW_ORIGIN);
   res.setHeader('Access-Control-Allow-Methods', 'GET,POST,OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -153,9 +152,9 @@ module.exports = async function handler(req, res) {
         try { await fb('PUT', '/debug', { body: Date.now() }); } catch (e) { write = 'failed: ' + String(e && e.message || e).slice(0, 200); }
         return send(res, 200, { ok: read === 'ok' && write === 'ok', mode: 'firebase', auth: FB_SECRET ? 'database secret' : 'service account', read, write, playersStored: count, database: DB.replace(/^https?:\/\//, '') });
       }
-      const limit = Math.max(1, Math.min(100, +(req.query && req.query.limit) || 50));
+      const limit = Math.max(1, Math.min(1000, +(req.query && req.query.limit) || 50));
       const [list, st] = await Promise.all([topScores(limit), stats()]);
-      return send(res, 200, { scores: list.slice(0, limit).map(e => ({ n: String(e.n || 'Pilot').slice(0, 12), s: e.s, k: pub(e.id) })), visitors: st.visitors, games: st.games, at: Date.now() });
+      return send(res, 200, { scores: list.slice(0, limit).map(e => ({ n: String(e.n || 'Pilot').slice(0, 12), s: e.s, k: pub(e.id) })), visitors: st.visitors, games: st.games, at: Date.now() }, limit > 100 ? 5 : 0);
     }
 
     if (req.method !== 'POST') return send(res, 405, { error: 'method' });

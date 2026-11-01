@@ -60,7 +60,7 @@ Easy / Medium / Hard / Hell is chosen on the menu (saved per device). Harder mod
 4. Bing Webmaster Tools: import from Search Console, or submit the sitemap.
 5. Test: Rich Results Test (JSON-LD), PageSpeed Insights, and share a link on WhatsApp/Discord to check the preview image.
 6. Replace `img/og-image.jpg` (1200x630) with a real gameplay screenshot when you have one.
-7. Legal pages (privacy, terms, contact, cookies, disclaimer, DMCA, about) are included and use itsvasudev404@gmail.com.
+7. Legal pages (privacy, terms, contact, cookies, disclaimer, DMCA, about) are included and use contact@vectofly.com.
 Note: `sitemap.xml` lastmod dates should be updated whenever you change a page.
 
 ## Deploy on Vercel with the global leaderboard (no Firebase)
@@ -150,3 +150,15 @@ On-screen buttons show while flying on every device: **Up / Down** (bottom right
 - Obstacles cover the full flying height, so there is no safe altitude.
 - Wave types: scattered spikes (some bob up and down from level 3), full walls with one gate, combs, and orange **homing spikes** that follow your height and lock on shortly before impact. A red "!" shows at the screen edge where one is coming from.
 - Staying at the same height for about 2.5 seconds calls in a homing spike. Pills and fuel appear at all heights, often in big waves, so you have to move to collect them.
+
+## Site: vectofly.com
+- Domain and email are set everywhere: https://vectofly.com and contact@vectofly.com (canonical links, Open Graph, sitemap, robots, legal pages).
+- Google Analytics (G-LXSLC7ZVNW) is in every page. A small notice lets visitors opt out; the Privacy and Cookie pages explain it.
+- Pages: how-to-play, leaderboard (full list with search and paging), about, contact, privacy, terms, cookie-policy, disclaimer, dmca, 404. The legal pages are generated from a template, so edit wording in one place if you regenerate them.
+- Bug reports and feedback: "Report a bug / send feedback" in the menu and on every page opens an email to contact@vectofly.com with device details filled in.
+
+## Gameplay notes (v7)
+- Fully touch based: slide a thumb anywhere. No on-screen buttons.
+- Narrow / portrait screens: the world is squeezed horizontally (XS) and the camera is fitted to it, so spikes and the plane stay large and you get the same reaction time as on a monitor. Scoring is unaffected.
+- Obstacle director: minimum time between waves (0.8 s, 0.95 s on touch), reachable gates that follow readable patterns, difficulty that adapts to how you play, spikes that avoid pills and fuel, homing spikes and punishment for standing still.
+- Free from the start: the 5 cheapest planes and 4 cheapest maps. Daily gift, close-call and pill-combo bonus coins, and a "next unlock" goal in the menu.

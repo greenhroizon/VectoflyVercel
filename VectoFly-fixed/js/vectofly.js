@@ -3,10 +3,10 @@ var VF = (function(){
   var $ = function(i){ return document.getElementById(i); };
   var KEY = 'vectofly_save_v1', OLD_KEY = 'flyaero_save_v1';
   var CFG = window.VECTOFLY_CONFIG || {};
-  var S = {name:'', uid:'', gbest:0, hi:0, coins:0, dist:0, games:0, bestLevel:1, music:true, sfx:true, vib:true, btns:true, hint:false, board:[], gk:'', diff:'hard', wallet:-1, plane:'classic', planes:['classic'], skin:'default', skins:['default'], map:'coast', maps:['coast']};
+  var S = {name:'', uid:'', gbest:0, hi:0, coins:0, dist:0, games:0, bestLevel:1, music:true, sfx:true, vib:true, btns:true, hint:false, dayKey:'', streak:0, board:[], gk:'', diff:'hard', wallet:-1, plane:'classic', planes:['classic'], skin:'default', skins:['default'], map:'coast', maps:['coast']};
   // Targets for the local board so it is never empty. They are clearly labelled bots, not real players.
   var BOTS = [{n:'Ace (bot)',s:9000,b:1},{n:'Maverick (bot)',s:5000,b:1},{n:'Skylark (bot)',s:2500,b:1},{n:'Rookie (bot)',s:800,b:1}];
-  var shake = 0, lastWarn = 0, mode = 'menu', lastEarned = 0, F = {paused:false}, cg = null, muted = false, runCoins = 0, newBest = false, lastBoard = 0, frameN = 0, legit = 0, playMs = 0, cheated = false, ticket = null;
+  var shake = 0, lastWarn = 0, mode = 'menu', lastEarned = 0, F = {paused:false}, cg = null, muted = false, runCoins = 0, runBonus = 0, combo = 0, nearMisses = 0, newBest = false, lastBoard = 0, frameN = 0, legit = 0, playMs = 0, cheated = false, ticket = null;
 
   // ---------- SAVE (localStorage + CrazyGames cloud data) ----------
   function merge(o){ if (o && typeof o === 'object' && (o.games||0) >= S.games){ for (var k in S) if (o[k] !== undefined) S[k] = o[k]; } }
@@ -211,7 +211,7 @@ var VF = (function(){
     var list, msg = '';
     if (gOn()){
       if (G.list){
-        list = G.list.slice(0,8).map(function(x,i){ return {r:i+1, n:x.n, s:x.s, you:!!myKey() && x.k === myKey()}; });
+        list = G.list.slice(0,50).map(function(x,i){ return {r:i+1, n:x.n, s:x.s, you:!!myKey() && x.k === myKey()}; });
         if (!list.length) msg = 'No scores yet - be the first!';
         else if (S.uid && S.gbest && !G.list.some(function(x){ return myKey() && x.k === myKey(); })) msg = 'Your world best: ' + S.gbest;
         if (G.state === 'err') msg = 'Offline - showing the last scores we got.';
@@ -220,7 +220,7 @@ var VF = (function(){
         list = []; msg = G.state === 'err' ? (G.err || 'Could not reach the world board. Retrying...') : 'Loading world leaderboard...';
       }
     } else {
-      list = localAll().slice(0,8).map(function(x,i){ x.r = i+1; return x; });
+      list = localAll().slice(0,50).map(function(x,i){ x.r = i+1; return x; });
     }
     if (G.sub && gOn()) msg = G.sub;
     fill(el, list); note.textContent = msg;
@@ -236,22 +236,41 @@ var VF = (function(){
   }
 
   // ---------- PANEL (menu + game over) ----------
+  // the cheapest plane or map you do not own yet: a clear next goal
+  function nextUnlock(){
+    var best = null;
+    PLANES.concat(MAPS).forEach(function(it){
+      var own = PLANES.indexOf(it) > -1 ? S.planes : S.maps;
+      if (!it.free && it.p > 0 && own.indexOf(it.id) < 0 && (!best || it.p < best.p)) best = it;
+    });
+    return best;
+  }
+  // one gift per day, bigger for every day in a row
+  function dailyGift(){
+    function key(d){ return d.getFullYear() + '-' + (d.getMonth()+1) + '-' + d.getDate(); }
+    var now = new Date(), today = key(now), y = new Date(now.getTime() - 86400000);
+    if (S.dayKey === today) return;
+    S.streak = (S.dayKey === key(y)) ? Math.min(S.streak + 1, 99) : 1;
+    var gift = 20 + 10*Math.min(S.streak - 1, 8);
+    S.dayKey = today; S.wallet += gift; save();
+    var g = $('gift'); if (g){ g.hidden = false; g.textContent = 'Daily gift: +' + gift + ' coins  (day ' + S.streak + (S.streak > 1 ? ' in a row' : '') + ')'; }
+  }
   function drawPanel(m){
     mode = m; document.body.classList.remove('playing');
     $('pTitle').textContent = mode==='over' ? 'Game Over' : 'VectoFly';
     $('pSub').textContent = mode==='over'
-      ? (cheated ? 'Cheat detected - this run was not counted.' : (game.reason ? game.reason + '  ' : '') + 'Score ' + F.score() + (newBest ? '  -  NEW BEST!' : '  -  Best ' + S.hi) + '  -  +' + lastEarned + ' coins')
+      ? (cheated ? 'Cheat detected - this run was not counted.' : (game.reason ? game.reason + '  ' : '') + 'Score ' + F.score() + (newBest ? '  -  NEW BEST!' : '  -  Best ' + S.hi) + '  -  +' + lastEarned + ' coins' + (runBonus ? ' (' + runBonus + ' bonus)' : ''))
       : 'Grab blue pills to repair, catch orange fuel cans, avoid the red ones.';
     $('wallet').textContent = 'Coins: ' + S.wallet + '   |   ' + plane().n + ' on ' + curMap().n;
+    var gl = $('goal'); if (gl){ var nx = nextUnlock(); gl.textContent = nx ? 'Next unlock: ' + nx.n + ' (' + nx.p + ' coins)' + (S.wallet >= nx.p ? ' - you can buy it now!' : ' - ' + (nx.p - S.wallet) + ' to go') : 'Everything unlocked - amazing!'; }
     var dr = $('diffRow'); dr.innerHTML = '';
     DIFFS.forEach(function(d){ var b = h('button', (S.diff===d.id ? 'on ' : '') + 'd-' + d.id, d.n); b.onclick = function(){ S.diff = d.id; save(); drawPanel(mode); }; dr.appendChild(b); });
     $('diffNote').textContent = 'Score and coins x' + diff().mult;
     $('playBtn').textContent = mode==='over' ? 'Play again' : 'Play';
     $('nameIn').value = S.name || $('nameIn').value;
-    paintBoard(); gFetch(false);
+    paintBoard(); gFetch(false); if (window.vfWireFeedback) vfWireFeedback($('panel'));
     $('stats').textContent = 'Best ' + S.hi + '  |  Pills ' + S.coins + '  |  Flights ' + S.games + '  |  Top level ' + S.bestLevel;
-    $('optMusic').checked = S.music; $('optSfx').checked = S.sfx; $('optVib').checked = S.vib !== false; $('optBtns').checked = S.btns !== false;
-    document.body.classList.toggle('nobtns', S.btns === false);
+    $('optMusic').checked = S.music; $('optSfx').checked = S.sfx; $('optVib').checked = S.vib !== false;
     $('panel').className = '';
   }
   var starting = false;
@@ -267,7 +286,7 @@ var VF = (function(){
     var launched = false;
     var launch = function(){
       if (launched) return; launched = true; starting = false;
-      $('panel').className = 'hide'; runCoins = 0; newBest = false; legit = 0; playMs = 0; cheated = false;
+      $('panel').className = 'hide'; runCoins = 0; runBonus = 0; combo = 0; nearMisses = 0; newBest = false; legit = 0; playMs = 0; cheated = false;
       document.body.classList.add('playing'); G.sub = '';
       if (F.touching && !S.hint){ S.hint = true; save(); setTimeout(function(){ toast('Slide a thumb anywhere to steer', '#fff6e2'); }, 600); }
       startGame(); gStart();
@@ -292,7 +311,7 @@ var VF = (function(){
   //        coin (coins earned per run multiplier), fuelVal (fuel can refill multiplier)
   // kind = which 3D model (see js/planes.js)
   var PLANES = [
-    {id:'paper',n:'Paper Plane',p:100,c:'#f4f4f0',kind:'paper',d:'Folded fun. Uses 15% less fuel.',drain:.85},
+    {id:'paper',free:1,n:'Paper Plane',p:100,c:'#f4f4f0',kind:'paper',d:'Folded fun. Uses 15% less fuel.',drain:.85},
     {id:'mustang',n:'Mustang',p:450,c:'#9aa8b8',kind:'warbird',d:'WWII warbird. Armor 15% and magnet x1.2.',armor:.85,magnet:1.2},
     {id:'baron',n:'Red Baron',p:700,c:'#c1272d',kind:'triplane',d:'Three wings. Magnet x1.3 and 1.3x coins.',magnet:1.3,coin:1.3},
     {id:'gyro',n:'Autogyro',p:850,c:'#e8c23a',kind:'gyro',d:'Spinning rotor. Magnet x1.3 and 20% less fuel use.',magnet:1.3,drain:.8},
@@ -301,9 +320,9 @@ var VF = (function(){
     {id:'interceptor',n:'Interceptor',p:2200,c:'#5a6a88',kind:'interceptor',d:'Twin-tail jet. Armor 35%, magnet x1.5, 15% less fuel use.',armor:.65,magnet:1.5,drain:.85},
     {id:'balloon',n:'Sky Balloon',p:2900,c:'#ff7a3a',kind:'balloon',d:'Floaty hot-air balloon. 45% less fuel use, magnet x1.6, 1.5x coins.',drain:.55,magnet:1.6,coin:1.5},
     {id:'classic',n:'Classic',p:0,c:'#f25346',kind:'prop',d:'The original. Balanced, no perks.'},
-    {id:'falcon',n:'Falcon',p:150,c:'#4aa3e8',kind:'racer',d:'Sleek racer. Magnet: grabs pills from further away.',magnet:1.8},
-    {id:'comet',n:'Comet Floatplane',p:250,c:'#2ec4d6',kind:'float',d:'Bush floatplane. Fuel cans refill 50% more.',fuelVal:1.5},
-    {id:'tank',n:'Tank Bomber',p:400,c:'#5fa86a',kind:'bomber',d:'Twin-engine heavy. Armor: crashes cause 40% less damage.',armor:.6},
+    {id:'falcon',free:1,n:'Falcon',p:150,c:'#4aa3e8',kind:'racer',d:'Sleek racer. Magnet: grabs pills from further away.',magnet:1.8},
+    {id:'comet',free:1,n:'Comet Floatplane',p:250,c:'#2ec4d6',kind:'float',d:'Bush floatplane. Fuel cans refill 50% more.',fuelVal:1.5},
+    {id:'tank',free:1,n:'Tank Bomber',p:400,c:'#5fa86a',kind:'bomber',d:'Twin-engine heavy. Armor: crashes cause 40% less damage.',armor:.6},
     {id:'viper',n:'Viper',p:600,c:'#c1272d',kind:'jet',d:'Delta-wing jet. Armor 20% and a small magnet.',armor:.8,magnet:1.3},
     {id:'phantom',n:'Phantom Glider',p:800,c:'#8d6ad9',kind:'glider',d:'Electric glider. Uses 30% less fuel.',drain:.7},
     {id:'chopper',n:'Chopper',p:900,c:'#e8793a',kind:'heli',d:'Helicopter. Magnet x1.6 and 10% armor.',magnet:1.6,armor:.9},
@@ -369,8 +388,8 @@ var VF = (function(){
   // pal = 4 sky stages [top,bottom] that the sky moves through as the level rises, sea = ground tint.
   var MAPS = [
     {id:'coast',n:'Sunny Coast',p:0,d:'Calm blue water, sailboats, warm afternoon sky.',sea:'#68c3c0',g:'water',t:['boat','rock','buoy'],fr:['buoy','rock'],farT:'mountain',far:'#8aa0c8',sun:'#fff1b8',pal:[['#e4e0ba','#f7d9aa'],['#f7c9a0','#f09a7b'],['#5b5f97','#c46f8b'],['#1b1f45','#4a3f7a']]},
-    {id:'bay',n:'Sunset Bay',p:100,d:'Golden-hour glow over rose water.',sea:'#e0787a',g:'water',t:['boat','rock'],fr:['rock','buoy'],farT:'mountain',far:'#c4687a',sun:'#ffd6a0',pal:[['#ffc48a','#ff8a6b'],['#ff9a76','#c4506b'],['#6a3d7a','#c4506b'],['#2a1840','#6a3d7a']]},
-    {id:'tropical',n:'Tropical Lagoon',p:150,d:'Palm islets in a turquoise lagoon.',sea:'#25d0c0',g:'water',t:['palm','rock','boat'],fr:['rock','buoy'],farT:'mountain',far:'#4aa89a',leaf:'#2fa05a',sand:'#f0dfaa',sun:'#fff6c8',pal:[['#bff3ff','#fff1b8'],['#ffd9a0','#ff9f7a'],['#4a6fa8','#d98cb0'],['#10234a','#2c5a8a']]},
+    {id:'bay',free:1,n:'Sunset Bay',p:100,d:'Golden-hour glow over rose water.',sea:'#e0787a',g:'water',t:['boat','rock'],fr:['rock','buoy'],farT:'mountain',far:'#c4687a',sun:'#ffd6a0',pal:[['#ffc48a','#ff8a6b'],['#ff9a76','#c4506b'],['#6a3d7a','#c4506b'],['#2a1840','#6a3d7a']]},
+    {id:'tropical',free:1,n:'Tropical Lagoon',p:150,d:'Palm islets in a turquoise lagoon.',sea:'#25d0c0',g:'water',t:['palm','rock','boat'],fr:['rock','buoy'],farT:'mountain',far:'#4aa89a',leaf:'#2fa05a',sand:'#f0dfaa',sun:'#fff6c8',pal:[['#bff3ff','#fff1b8'],['#ffd9a0','#ff9f7a'],['#4a6fa8','#d98cb0'],['#10234a','#2c5a8a']]},
     {id:'arctic',n:'Arctic',p:250,d:'Icy plains under a pale polar sky.',sea:'#bfe0ee',g:'snow',t:['ice','rock','pine'],fr:['rock','tuft'],farT:'mountain',far:'#c5d8ec',snow:true,leaf:'#2e6a55',snowy:true,sun:'#ffffff',pal:[['#dff3fb','#b7e0f0'],['#c9e6f5','#e9d8f0'],['#6f8fc4','#b6c9ea'],['#1c2a52','#5a74a8']]},
     {id:'sakura',n:'Cherry Blossom Bay',p:350,d:'Japan in spring: pink blossoms, soft skies.',sea:'#e8a0b8',g:'water',t:['tree','boat','rock'],fr:['bush','rock'],leaf:'#ffb3cf',farT:'mountain',far:'#d9a0c0',sun:'#fff0f4',pal:[['#ffe3ec','#ffc2d4'],['#ffc2d4','#e89ab8'],['#7a5a9a','#e89ab8'],['#241838','#5a3a78']]},
     {id:'neon',n:'Neon Night',p:450,d:'Tokyo-style neon towers glowing over dark water.',sea:'#3b2a8f',g:'water',t:['building'],fr:['buoy','rock'],bld:['#1d1445','#2a1a5e','#161038'],lit:['#ff4fd8','#4ff0ff','#ffe14a'],antenna:true,farT:'skyline',far:'#2a1a5e',sun:'#ff8ae0',stars:true,pal:[['#2a1b5e','#d63a9e'],['#1a1048','#8a2be2'],['#0f0a33','#d63a9e'],['#07051f','#4a1fa8']]},
@@ -383,7 +402,7 @@ var VF = (function(){
     {id:'mars',n:'Mars Colony',p:1600,d:'Red planet dust, rovers\' domes and a thin sky.',sea:'#b5532e',g:'dust',t:['rock','dome','rock'],rock:'#8a4a32',fr:['rock'],farT:'mountain',far:'#a85a3a',sun:'#ffc8a0',pal:[['#f0b48a','#d98a5a'],['#d98a5a','#a8502e'],['#5a2a2a','#a8502e'],['#1a0a0e','#4a1a1a']]},
     {id:'space',n:'Deep Space',p:2000,d:'A glowing grid under a violet nebula.',sea:'#2a2a7a',g:'grid',t:['crystal','rock'],crystal:['#7ad7ff','#b07cff','#ff7ad5'],rock:'#4a4a7a',fr:['crystal'],farT:'none',sun:null,stars:true,pal:[['#101040','#3a2a8a'],['#080828','#2a1a6a'],['#04041a','#1a1050'],['#000008','#0a0828']]},
     // --- new maps ---
-    {id:'canyon',n:'Red Canyon',p:200,d:'Sandstone mesas and cacti at sunrise.',sea:'#c2623a',g:'sand',t:['mesa','cactus','rock'],fr:['rock','tuft'],tuft:'#9a6a3a',rock:'#9a5a3a',farT:'mountain',far:'#b4583a',sun:'#fff0c0',pal:[['#ffd9a0','#f7b070'],['#ff9a6a','#c4503a'],['#5a3a6a','#c4503a'],['#1a1030','#4a2a4a']]},
+    {id:'canyon',free:1,n:'Red Canyon',p:200,d:'Sandstone mesas and cacti at sunrise.',sea:'#c2623a',g:'sand',t:['mesa','cactus','rock'],fr:['rock','tuft'],tuft:'#9a6a3a',rock:'#9a5a3a',farT:'mountain',far:'#b4583a',sun:'#fff0c0',pal:[['#ffd9a0','#f7b070'],['#ff9a6a','#c4503a'],['#5a3a6a','#c4503a'],['#1a1030','#4a2a4a']]},
     {id:'autumn',n:'Autumn Valley',p:300,d:'Orange maples and rolling fields.',sea:'#c98a2f',g:'grass',t:['tree','tree','bush','rock'],fr:['tuft','bush'],leaf:'#e0702a',tuft:'#b07a2a',farT:'mountain',far:'#a8805a',sun:'#fff0c8',pal:[['#ffe6b0','#f5c080'],['#f7b070','#d97a4a'],['#5a4a7a','#d97a4a'],['#1a1838','#4a3a5a']]},
     {id:'winter',n:'Snow Village',p:380,d:'Frosted pines and fresh powder.',sea:'#e6f1f8',g:'snow',t:['pine','pine','ice','rock'],fr:['rock','tuft'],leaf:'#2e6a4f',snowy:true,farT:'mountain',far:'#b8cbe0',snow:true,sun:'#ffffff',pal:[['#dbe9f5','#f2f6fa'],['#c9d8ee','#e8d4e0'],['#5a6a9a','#b8c0e0'],['#10183a','#3a4a7a']]},
     {id:'savanna',n:'Golden Savanna',p:500,d:'Acacia trees on endless golden grass.',sea:'#b8a24a',g:'grass',t:['acacia','acacia','bush','rock'],fr:['tuft','rock'],leaf:'#8a9a3a',tuft:'#c0a040',farT:'mountain',far:'#c29a5a',sun:'#fff1b8',pal:[['#ffe9a8','#f7c870'],['#ffc070','#e08a4a'],['#7a4a6a','#e08a4a'],['#1c1230','#5a3a4a']]},
@@ -517,7 +536,8 @@ var VF = (function(){
         }
       }
       c.appendChild(sw); c.appendChild(h('b','',it.n)); if (it.d) c.appendChild(h('div','d',it.d));
-      var owned = S[ownKey].indexOf(it.id) > -1, b;
+      var owned = it.free || S[ownKey].indexOf(it.id) > -1, b;
+      if (it.free && !(S[ownKey].indexOf(it.id) > -1)){ c.appendChild(h('span','freeTag','FREE')); }
       if (owned){
         b = h('button','', S[key]===it.id ? 'Selected' : 'Select'); b.disabled = S[key]===it.id;
         b.onclick = function(){ S[key] = it.id; dirty = true; save(); drawShop(); };
@@ -544,15 +564,19 @@ var VF = (function(){
     try { console.warn('VectoFly: run stopped (' + why + ')'); } catch(e){}
     endRun('Cheat detected - run not counted.');
   };
-  F.onCoin = function(){ runCoins++; sfx('coin'); };
-  F.onHit = function(){ sfx('hit'); shake = 14; buzz(45); };
+  F.onCoin = function(){
+    runCoins++; sfx('coin'); combo++;
+    if (combo % 5 === 0){ runBonus += 3; toast('COMBO x' + combo + '  +3', '#fff6a0'); buzz(20); }   // 5 pills in a row without a hit
+  };
+  F.onNearMiss = function(){ if (nearMisses >= 15) return; nearMisses++; runBonus += 1; toast('CLOSE CALL +1', '#ffe14a'); sfx('coin'); };
+  F.onHit = function(){ sfx('hit'); shake = 14; buzz(45); combo = 0; };
   function buzz(p){ try { if (S.vib !== false && navigator.vibrate) navigator.vibrate(p); } catch(e){} }
   F.onFuel = function(){ sfx('fuel'); toast('+FUEL','#f4a63a'); };
   F.onLevel = function(l){ sfx('level'); toast('LEVEL ' + l,'#68c3c0'); };
   F.onGameOver = function(){
     var sc = F.score(); sfx('over'); buzz([70,40,120]);
     if (cheated){ lastEarned = 0; newBest = false; if (engineG) engineG.gain.setTargetAtTime(0, AC.currentTime, .2); save(); try { if (cg) cg.game.gameplayStop(); } catch(e){} return; }
-    lastEarned = Math.floor((runCoins*(plane().coin||1) + sc/200) * diff().mult); S.wallet += lastEarned;
+    lastEarned = Math.floor((runCoins*(plane().coin||1) + sc/200) * diff().mult) + runBonus; S.wallet += lastEarned;
     if (engineG) engineG.gain.setTargetAtTime(0, AC.currentTime, .2);
     S.games++; S.coins += runCoins; S.dist += Math.floor(game.distance); S.bestLevel = Math.max(S.bestLevel, game.level);
     if (sc > S.hi){ S.hi = sc; newBest = true; }
@@ -568,7 +592,7 @@ var VF = (function(){
   var cur = MAPS[0].pal[0].map(rgb), bright = 1;
   var STAGE_LIGHT = [1, .92, .68, .42], STAGE_SUN = [210, 120, 36, 200];
   F.onFrame = function(){
-    frameN++;
+    frameN++; var tn = Date.now(); if (tn - fpsT >= 1000){ F.fps = Math.round(fpsN*1000/(tn - fpsT)); fpsT = tn; fpsN = 0; } fpsN++;
     if (dirty && applyLook()) dirty = false;
     var L = (typeof game !== 'undefined') ? game.level : 1, mp = curMap(), st = Math.floor((L-1)/3)%4, tg = mp.pal[st].map(rgb);
     for (var i=0;i<2;i++) for (var k=0;k<3;k++) cur[i][k] += (tg[i][k]-cur[i][k])*.01;
@@ -594,7 +618,7 @@ var VF = (function(){
     if (game.damage > 70 && Date.now()-lastWarn > 1100){ lastWarn = Date.now(); sfx('warn'); }
     else if (game.fuel < 30 && Date.now()-lastWarn > 1100){ lastWarn = Date.now(); sfx('warn'); }
     // keyboard steering (arrows / WASD) feeds the same mousePos the mouse uses
-    var dx = (keys[39]||keys[68]||pad.r?1:0)-(keys[37]||keys[65]||pad.l?1:0), dy = (keys[38]||keys[87]||pad.u?1:0)-(keys[40]||keys[83]||pad.d?1:0);
+    var dx = (keys[39]||keys[68]?1:0)-(keys[37]||keys[65]?1:0), dy = (keys[38]||keys[87]?1:0)-(keys[40]||keys[83]?1:0);
     // time based (same speed at 30 or 120 fps) and it speeds up the longer you hold: precise taps, fast sweeps
     var dtS = Math.min(deltaTime, 50)/1000;
     if (dx||dy){ held += dtS; var ramp = 1 + Math.min(held, .5)/.5; mousePos = {x:Math.max(-1,Math.min(1,mousePos.x+dx*1.8*ramp*dtS)), y:Math.max(-1,Math.min(1,mousePos.y+dy*2.2*ramp*dtS))}; } else held = 0;
@@ -603,22 +627,13 @@ var VF = (function(){
   };
 
   // ---------- INPUT / LIFECYCLE ----------
-  var keys = {}, pad = {u:0,d:0,l:0,r:0}, held = 0;
+  var keys = {}, held = 0, fpsT = Date.now(), fpsN = 0;
+  F.debugInfo = function(){
+    var g = (typeof game !== 'undefined') ? game : {};
+    return 'Game: plane ' + S.plane + ', map ' + S.map + ', difficulty ' + S.diff + ', best ' + S.hi + ', level ' + (g.level || '-') + ', status ' + (g.status || '-') +
+      ', touch ' + (F.touching ? 'yes' : 'no') + ', world scale ' + (typeof XS !== 'undefined' ? XS.toFixed(2) : '-') + ', fps ~' + (F.fps || '?') + ', version 7';
+  };
   F.touching = false;
-  F.padHeld = function(){ return !!(pad.u || pad.d || pad.l || pad.r); };
-  function initPad(){
-    var el = $('ctl'); if (!el) return;
-    var btns = el.querySelectorAll('button[data-k]');
-    Array.prototype.forEach.call(btns, function(b){
-      var k = b.getAttribute('data-k'), ids = {};
-      function on(e){ e.preventDefault(); ids[e.pointerId] = 1; pad[k] = 1; b.classList.add('down'); try { b.setPointerCapture(e.pointerId); } catch(x){} }
-      function off(e){ delete ids[e.pointerId]; if (!Object.keys(ids).length){ pad[k] = 0; b.classList.remove('down'); } }
-      b.addEventListener('pointerdown', on);
-      b.addEventListener('pointerup', off); b.addEventListener('pointercancel', off); b.addEventListener('lostpointercapture', off);
-      b.addEventListener('contextmenu', function(e){ e.preventDefault(); });
-    });
-    window.addEventListener('blur', function(){ pad.u = pad.d = pad.l = pad.r = 0; Array.prototype.forEach.call(btns, function(b){ b.classList.remove('down'); }); });
-  }
   function setPause(p){
     F.paused = p && game.status === 'playing';   // menus and shops are never paused
     muted = p; apply();
@@ -627,7 +642,7 @@ var VF = (function(){
     if (F.paused) toast('PAUSED - tap to resume','#fff6e2');
   }
   function init(){
-    load(); if (S.wallet < 0) S.wallet = S.coins; drawPanel('menu'); sdkInit(); drawLive(); initPad(); gVisit();
+    load(); if (S.wallet < 0) S.wallet = S.coins; drawPanel('menu'); sdkInit(); drawLive(); gVisit(); dailyGift(); drawPanel('menu');
     // keep the world board fresh on every device: poll while the page is visible, refresh the moment you come back
     setInterval(function(){ if (!document.hidden) gFetch(true); }, 10000);
     document.addEventListener('visibilitychange', function(){ if (!document.hidden) gFetch(true); });
@@ -640,7 +655,6 @@ var VF = (function(){
     $('optMusic').onchange = function(){ S.music = this.checked; apply(); save(); };
     $('optSfx').onchange = function(){ S.sfx = this.checked; apply(); save(); };
     $('optVib').onchange = function(){ S.vib = this.checked; save(); if (S.vib) buzz(30); };
-    $('optBtns').onchange = function(){ S.btns = this.checked; document.body.classList.toggle('nobtns', !S.btns); save(); };
     if (!navigator.vibrate) $('vibLbl').style.display = 'none';
     $('soundBtn').onclick = function(){ var on = !(S.music||S.sfx); S.music = S.sfx = on; apply(); save(); $('optMusic').checked = $('optSfx').checked = on; };
     document.addEventListener('keydown', function(e){

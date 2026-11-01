@@ -2,11 +2,11 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>How to Play VectoFly - Controls, Tips & Tricks (Free Plane Game)</title>
-<meta name="description" content="Learn how to play VectoFly, the free endless 3D plane game: controls for mouse, touch and keyboard, fuel and damage, difficulty levels, tips for a high score and troubleshooting.">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>How to Play VectoFly - Controls, Scoring and Tips</title>
+<meta name="description" content="Learn how to play VectoFly: touch, mouse and keyboard controls, pills, fuel, spikes, scoring, difficulty multipliers, free planes and maps, and tips for a high score.">
 <meta name="robots" content="index, follow, max-image-preview:large">
-<link rel="canonical" href="https://YOUR-DOMAIN.com/how-to-play.html">
+<link rel="canonical" href="https://vectofly.com/how-to-play.html">
 <meta name="theme-color" content="#f7d9aa">
 <link rel="icon" href="favicon.ico" sizes="any">
 <link rel="icon" type="image/png" sizes="192x192" href="img/icon-192.png">
@@ -14,82 +14,111 @@
 <link rel="manifest" href="site.webmanifest">
 <meta property="og:type" content="article">
 <meta property="og:site_name" content="VectoFly">
-<meta property="og:title" content="How to Play VectoFly - Controls, Tips & Tricks (Free Plane Game)">
-<meta property="og:description" content="Learn how to play VectoFly, the free endless 3D plane game: controls for mouse, touch and keyboard, fuel and damage, difficulty levels, tips for a high score and troubleshooting.">
-<meta property="og:url" content="https://YOUR-DOMAIN.com/how-to-play.html">
-<meta property="og:image" content="https://YOUR-DOMAIN.com/img/og-image.jpg">
+<meta property="og:title" content="How to Play VectoFly - Controls, Scoring and Tips">
+<meta property="og:description" content="Learn how to play VectoFly: touch, mouse and keyboard controls, pills, fuel, spikes, scoring, difficulty multipliers, free planes and maps, and tips for a high score.">
+<meta property="og:url" content="https://vectofly.com/how-to-play.html">
+<meta property="og:image" content="https://vectofly.com/img/og-image.jpg">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="How to Play VectoFly - Controls, Tips & Tricks (Free Plane Game)">
-<meta name="twitter:description" content="Learn how to play VectoFly, the free endless 3D plane game: controls for mouse, touch and keyboard, fuel and damage, difficulty levels, tips for a high score and troubleshooting.">
-<meta name="twitter:image" content="https://YOUR-DOMAIN.com/img/og-image.jpg">
-<script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"VectoFly","item":"https://YOUR-DOMAIN.com/"},{"@type":"ListItem","position":2,"name":"How to play","item":"https://YOUR-DOMAIN.com/how-to-play.html"}]}</script>
-<script type="application/ld+json">{"@context": "https://schema.org", "@type": "HowTo", "name": "How to play VectoFly", "description": "Learn the controls and goals of the free endless 3D plane game VectoFly.", "totalTime": "PT1M", "step": [{"@type": "HowToStep", "name": "Enter a pilot name", "text": "Type a nickname, not your real name."}, {"@type": "HowToStep", "name": "Start the game", "text": "Choose a difficulty and press Play or the Space bar."}, {"@type": "HowToStep", "name": "Steer your plane", "text": "Use the mouse, touch, arrow keys or WASD to fly."}, {"@type": "HowToStep", "name": "Collect and dodge", "text": "Collect blue pills and orange fuel cans, and avoid the red spikes."}, {"@type": "HowToStep", "name": "Beat the leaderboard", "text": "Check your rank on the World leaderboard and try again."}]}</script>
-<script type="application/ld+json">{"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": "How do I control the plane in VectoFly?", "acceptedAnswer": {"@type": "Answer", "text": "On desktop, move the mouse or use the arrow keys or WASD. On phones and tablets, touch and drag. Press Space to start, P to pause and M to mute."}}, {"@type": "Question", "name": "What do the blue pills and orange cans do?", "acceptedAnswer": {"@type": "Answer", "text": "Blue pills repair damage and add to your score. Orange fuel cans refill your fuel so you can keep flying."}}, {"@type": "Question", "name": "How does a run end?", "acceptedAnswer": {"@type": "Answer", "text": "A run ends when your damage bar fills up from hitting red spikes, or when you run out of fuel."}}, {"@type": "Question", "name": "Which difficulty should I choose?", "acceptedAnswer": {"@type": "Answer", "text": "Start on Easy to learn the patterns. Medium, Hard and Hell multiply score and coins by 1.25, 1.5 and 2, but spawn more obstacles and burn fuel faster."}}, {"@type": "Question", "name": "Why does VectoFly not load or run slowly?", "acceptedAnswer": {"@type": "Answer", "text": "VectoFly needs a browser with WebGL and JavaScript enabled. Update your browser, turn on hardware acceleration, close heavy tabs and try again."}}, {"@type": "Question", "name": "Is VectoFly free?", "acceptedAnswer": {"@type": "Answer", "text": "Yes, it is free to play worldwide and needs no download or account."}}]}</script>
+<meta name="twitter:title" content="How to Play VectoFly - Controls, Scoring and Tips">
+<meta name="twitter:description" content="Learn how to play VectoFly: touch, mouse and keyboard controls, pills, fuel, spikes, scoring, difficulty multipliers, free planes and maps, and tips for a high score.">
+<meta name="twitter:image" content="https://vectofly.com/img/og-image.jpg">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"VectoFly","item":"https://vectofly.com/"},{"@type":"ListItem","position":2,"name":"How to play","item":"https://vectofly.com/how-to-play.html"}]}</script>
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": "How do I steer on a phone or tablet?", "acceptedAnswer": {"@type": "Answer", "text": "Put a thumb anywhere on the screen and slide up or down. The plane moves by the amount you slide, so your thumb never hides it. Sliding left or right changes your speed a little."}}, {"@type": "Question", "name": "Is VectoFly free?", "acceptedAnswer": {"@type": "Answer", "text": "Yes. It is free, needs no account and has no real-money purchases. The first five planes and first four maps are free from the start."}}, {"@type": "Question", "name": "How is the score calculated?", "acceptedAnswer": {"@type": "Answer", "text": "Score = (distance flown + 5 for every pill) x the difficulty multiplier: Easy x1, Medium x1.25, Hard x1.5, Hell x2."}}, {"@type": "Question", "name": "What are the orange spikes?", "acceptedAnswer": {"@type": "Answer", "text": "Homing spikes. They follow your height and lock on shortly before reaching you, so keep moving and dodge at the last moment. A flashing ! at the screen edge warns you where one is coming from."}}, {"@type": "Question", "name": "Why does the game punish staying still?", "acceptedAnswer": {"@type": "Answer", "text": "Waves cover every height and staying at one height for a few seconds calls a homing spike, so there is no safe corner."}}, {"@type": "Question", "name": "How do I unlock more planes and maps?", "acceptedAnswer": {"@type": "Answer", "text": "Earn coins at the end of each flight (plus bonuses for close calls, pill combos and a daily gift) and spend them in the Hangar and Maps menus."}}, {"@type": "Question", "name": "Why was my score not saved?", "acceptedAnswer": {"@type": "Answer", "text": "Scores are checked by an anti-cheat system. Reload the page and play again. If it keeps happening, email contact@vectofly.com with your device and browser."}}, {"@type": "Question", "name": "How do I report a bug or send feedback?", "acceptedAnswer": {"@type": "Answer", "text": "Use the Report a bug / send feedback link at the bottom of the menu, or email contact@vectofly.com."}}]}</script>
+<!-- Google tag (gtag.js) -->
+<script>try{if(localStorage.getItem('vf_ga_off')==='1')window['ga-disable-G-LXSLC7ZVNW']=true;}catch(e){}</script>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-LXSLC7ZVNW"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-LXSLC7ZVNW');
+</script>
 <style>
-body{margin:0;font:17px/1.65 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;color:#2b2320;background:linear-gradient(#e4e0ba,#f7d9aa);min-height:100vh}
-.wrap{max-width:780px;margin:0 auto;padding:32px 20px 60px}
-h1{font-family:'Playfair Display',Georgia,serif;font-size:2.4em;line-height:1.15;margin:.2em 0 .4em;color:#59332e}
-h2{color:#59332e;margin-top:1.8em}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;font:17px/1.65 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;color:#2b2320;background:linear-gradient(#e4e0ba,#f7d9aa) fixed;min-height:100vh}
+.wrap{max-width:820px;margin:0 auto;padding:22px 18px 60px}
+header.site{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px 18px;padding-bottom:14px;border-bottom:1px solid rgba(89,51,46,.18);margin-bottom:6px}
+header.site a.brand{font:700 26px Georgia,'Playfair Display',serif;color:#f25346;text-decoration:none;letter-spacing:.5px}
+header.site nav{display:flex;flex-wrap:wrap;gap:2px 14px;font-size:15px}
+header.site nav a{color:#59332e;text-decoration:none;padding:4px 0}
+header.site nav a:hover,header.site nav a[aria-current]{color:#b4372b;text-decoration:underline}
+h1{font-family:'Playfair Display',Georgia,serif;font-size:clamp(1.9em,6vw,2.5em);line-height:1.15;margin:.7em 0 .3em;color:#59332e}
+h2{color:#59332e;margin:1.7em 0 .4em;font-size:1.3em;line-height:1.3}
+h3{color:#59332e;margin:1.2em 0 .2em;font-size:1.05em}
+p,li{overflow-wrap:anywhere}
 a{color:#b4372b}
-.play{display:inline-block;margin:14px 0 6px;padding:12px 28px;background:#f25346;color:#fff;border-radius:8px;text-decoration:none;font-weight:700}
-.card{background:rgba(255,255,255,.55);border-radius:10px;padding:16px 20px;margin:16px 0}
-nav.top a{margin-right:14px}
-footer{margin-top:40px;font-size:14px;line-height:2;opacity:.85}
+.play{display:inline-block;margin:14px 10px 6px 0;padding:13px 30px;background:#f25346;color:#fff;border-radius:10px;text-decoration:none;font-weight:700;box-shadow:0 3px 0 #b4372b}
+.play.alt{background:#68c3c0;box-shadow:0 3px 0 #3f8f8c}
+.card{background:rgba(255,255,255,.6);border-radius:12px;padding:14px 18px;margin:16px 0}
+.note{font-size:14px;opacity:.8}
+table{border-collapse:collapse;width:100%;margin:12px 0;font-size:15px}
+th,td{border:1px solid rgba(89,51,46,.25);padding:7px 10px;text-align:left;vertical-align:top}
+th{background:rgba(255,255,255,.55)}
+.scroll{overflow-x:auto}
+footer.site{margin-top:46px;padding-top:16px;border-top:1px solid rgba(89,51,46,.18);font-size:14px;line-height:2;opacity:.9}
+footer.site a{margin-right:12px;white-space:nowrap}
+@media (max-width:520px){body{font-size:16px}.wrap{padding:16px 14px 50px}header.site nav{font-size:14px}.play{display:block;text-align:center;margin-right:0}}
 </style>
 </head>
 <body>
 <div class="wrap">
-<nav class="top" aria-label="Breadcrumb"><a href="./">VectoFly</a> &rsaquo; How to play</nav>
-<h1>How to Play VectoFly</h1>
+<header class="site"><a class="brand" href="./">VectoFly</a><nav aria-label="Main"><a href="index.html">Play</a><a href="how-to-play.html" aria-current="page">How to play</a><a href="leaderboard.html">Leaderboard</a><a href="about.html">About</a><a href="contact.html">Contact</a></nav></header>
 
-<p>VectoFly is a free endless 3D plane game for players worldwide. Your goal is simple: stay in the air as long as you can and score as high as possible. This guide covers everything you need to start.</p>
-<a class="play" href="./">Play VectoFly now</a>
-<h2>Quick start</h2>
-<ol>
-<li>Type a pilot name (use a nickname, not your real name).</li>
-<li>Choose a difficulty and press <strong>Play</strong> or the Space bar.</li>
-<li>Steer your plane, collect pills and fuel, and avoid the red spikes.</li>
-<li>When the run ends, check your rank on the World leaderboard and try again.</li>
-</ol>
+<h1>How to Play VectoFly</h1>
+<p>Fly as far as you can. Dodge the red spikes, grab blue pills to repair, catch orange fuel cans to keep flying, and climb the world leaderboard. A run ends when your damage bar fills up or your fuel runs out.</p>
+<p><a class="play" href="./">Play now</a></p>
+
 <h2>Controls</h2>
-<div class="card">
-<p><strong>Desktop:</strong> move the mouse, or use the arrow keys or WASD to steer.</p>
-<p><strong>Mobile and tablet:</strong> touch and drag on the screen to move your plane.</p>
-<p><strong>Keys:</strong> Space = play &middot; P = pause &middot; M = mute.</p>
-</div>
-<h2>What to collect and avoid</h2>
+<div class="scroll"><table>
+<tr><th>Device</th><th>How to steer</th></tr>
+<tr><td><strong>Phone / tablet (touch)</strong></td><td>Put a thumb <em>anywhere</em> and slide up or down. The plane moves by the amount you slide, so there is no jump when you touch down and your thumb never covers the plane. Sliding left/right changes speed slightly. Works in portrait and landscape.</td></tr>
+<tr><td><strong>Mouse</strong></td><td>The plane follows the pointer: move up for height, left/right for speed.</td></tr>
+<tr><td><strong>Keyboard</strong></td><td>Arrow keys or W A S D. <kbd>Space</kbd> start, <kbd>P</kbd> pause, <kbd>M</kbd> mute.</td></tr>
+</table></div>
+
+<h2>What you see</h2>
 <ul>
-<li><strong>Blue pills</strong> repair damage and add to your score.</li>
-<li><strong>Orange fuel cans</strong> refill your fuel so you can keep flying.</li>
-<li><strong>Red spikes</strong> cause damage. If the damage bar fills up, the run ends.</li>
+<li><strong style="color:#c1272d">Red spikes</strong> - hitting one adds damage (the amount depends on difficulty). They come in scattered groups, full walls with a gap, combs, and spikes that bob up and down. There is always a way through.</li>
+<li><strong style="color:#e07a10">Orange homing spikes</strong> - they follow your height and lock on shortly before impact. A flashing <strong>!</strong> at the screen edge shows where one is coming from. Keep moving, then dodge at the last moment.</li>
+<li><strong style="color:#2a7fcf">Blue pills</strong> - repair damage and add 5 points each. Trails often sweep up and down, so you have to fly to get them. Collect several in a row without a hit to build a <strong>combo</strong>.</li>
+<li><strong style="color:#e08a1a">Orange fuel cans</strong> - refill your fuel. Fuel slowly drains while you fly.</li>
 </ul>
-<h2>Fuel, damage and levels</h2>
-<p>Two bars at the top of the screen matter most: <em>damage</em> (keep it low) and <em>fuel</em> (keep it high). As you travel further you level up, and the plane flies faster, so react early and make small steering moves.</p>
-<h2>Difficulty levels</h2>
-<p>Pick Easy, Medium, Hard or Hell on the menu. Harder modes hit harder, spawn bigger and closer waves, speed up faster and burn fuel quicker, but they multiply your score and coins (x1, x1.25, x1.5 and x2).</p>
-<h2>Hangar: planes, paints and maps</h2>
-<p>Spend the coins you earn in the Hangar to unlock new planes and paint patterns, and open Maps to fly through different worlds. Coins and unlocks are saved on your device.</p>
-<h2>Global leaderboard</h2>
-<p>The World tab shows the best score for each pilot from around the globe. The This device tab shows your own best runs. Keep pilot names friendly; offensive names are removed.</p>
+
+<h2>Scoring and coins</h2>
+<p><strong>Score = (distance flown + 5 x pills) x difficulty multiplier.</strong></p>
+<div class="scroll"><table>
+<tr><th>Difficulty</th><th>Multiplier</th><th>Feel</th></tr>
+<tr><td>Easy</td><td>x1</td><td>Slower start, gentle damage - great for learning</td></tr>
+<tr><td>Medium</td><td>x1.25</td><td>A bit faster, more spikes</td></tr>
+<tr><td>Hard</td><td>x1.5</td><td>Fast, bigger waves, homing spikes more often</td></tr>
+<tr><td>Hell</td><td>x2</td><td>Very fast, heavy damage, minimal mercy</td></tr>
+</table></div>
+<p>All difficulties share <a href="leaderboard.html">one world leaderboard</a>, which keeps your single best score. Coins are earned at the end of each flight, plus <strong>bonus coins</strong> for close calls (passing a spike by a hair), pill combos and a <strong>daily gift</strong> that grows with your streak.</p>
+
+<h2>Planes, paints and maps</h2>
+<p>The <strong>first five planes</strong> (Classic, Paper Plane, Falcon, Comet Floatplane, Tank Bomber) and the <strong>first four maps</strong> (Sunny Coast, Sunset Bay, Tropical Lagoon, Red Canyon) are free from your first flight. Spend coins in the Hangar and Maps menus to unlock more. Planes have perks such as armor, a pill magnet, lower fuel use or bigger fuel refills.</p>
+
 <h2>Tips for a high score</h2>
-<ul>
-<li>Watch your fuel bar as closely as your damage bar.</li>
-<li>Stay near the middle of the screen so you have room to dodge either way.</li>
-<li>Learn the spike patterns on Easy, then move up for the score multiplier.</li>
-<li>Grab pills when damage is high, but do not take big risks for them when it is low.</li>
-<li>Play in short sessions and take breaks; the game has moving and flashing visuals.</li>
-</ul>
-<h2>Troubleshooting</h2>
-<ul>
-<li><strong>Black screen or will not start:</strong> make sure JavaScript and WebGL are enabled, update your browser and reload.</li>
-<li><strong>Low frame rate:</strong> turn on hardware acceleration, close other tabs, or try Chrome, Edge, Firefox or Safari.</li>
-<li><strong>No sound:</strong> check the Music and Sound FX boxes on the menu and press M to unmute.</li>
-<li><strong>Lost progress:</strong> progress is saved in your browser, so clearing site data or using private mode will reset it.</li>
-</ul>
+<ol>
+<li>Look for the gap, not the spikes. Waves always leave a gate that moves only a lane or two between waves.</li>
+<li>Do small moves early rather than big moves late.</li>
+<li>Do not park at the top or bottom: homing spikes find you there.</li>
+<li>Take pill trails when they are safe; they are worth points and repair damage.</li>
+<li>Grab fuel before it gets low - low fuel plays a warning sound.</li>
+<li>Harder difficulty means a bigger multiplier, but a clean Medium run often beats a crashed Hell run.</li>
+</ol>
+
 <h2>Frequently asked questions</h2>
-<h3>How do I control the plane in VectoFly?</h3><p>On desktop, move the mouse or use the arrow keys or WASD. On phones and tablets, touch and drag. Press Space to start, P to pause and M to mute.</p><h3>What do the blue pills and orange cans do?</h3><p>Blue pills repair damage and add to your score. Orange fuel cans refill your fuel so you can keep flying.</p><h3>How does a run end?</h3><p>A run ends when your damage bar fills up from hitting red spikes, or when you run out of fuel.</p><h3>Which difficulty should I choose?</h3><p>Start on Easy to learn the patterns. Medium, Hard and Hell multiply score and coins by 1.25, 1.5 and 2, but spawn more obstacles and burn fuel faster.</p><h3>Why does VectoFly not load or run slowly?</h3><p>VectoFly needs a browser with WebGL and JavaScript enabled. Update your browser, turn on hardware acceleration, close heavy tabs and try again.</p><h3>Is VectoFly free?</h3><p>Yes, it is free to play worldwide and needs no download or account.</p>
-<a class="play" href="./">Start flying</a>
-<footer><nav aria-label="Footer"><a href="./">Play</a> &middot; <a href="how-to-play.html">How to play</a> &middot; <a href="about.html">About</a> &middot; <a href="contact.html">Contact</a> &middot; <a href="privacy.html">Privacy Policy</a> &middot; <a href="terms.html">Terms &amp; Conditions</a> &middot; <a href="cookie-policy.html">Cookie Policy</a> &middot; <a href="disclaimer.html">Disclaimer</a> &middot; <a href="dmca.html">DMCA</a></nav><p>&copy; 2026 VectoFly. Made and operated by a small team.</p></footer>
+<h3>How do I steer on a phone or tablet?</h3><p>Put a thumb anywhere on the screen and slide up or down. The plane moves by the amount you slide, so your thumb never hides it. Sliding left or right changes your speed a little.</p><h3>Is VectoFly free?</h3><p>Yes. It is free, needs no account and has no real-money purchases. The first five planes and first four maps are free from the start.</p><h3>How is the score calculated?</h3><p>Score = (distance flown + 5 for every pill) x the difficulty multiplier: Easy x1, Medium x1.25, Hard x1.5, Hell x2.</p><h3>What are the orange spikes?</h3><p>Homing spikes. They follow your height and lock on shortly before reaching you, so keep moving and dodge at the last moment. A flashing ! at the screen edge warns you where one is coming from.</p><h3>Why does the game punish staying still?</h3><p>Waves cover every height and staying at one height for a few seconds calls a homing spike, so there is no safe corner.</p><h3>How do I unlock more planes and maps?</h3><p>Earn coins at the end of each flight (plus bonuses for close calls, pill combos and a daily gift) and spend them in the Hangar and Maps menus.</p><h3>Why was my score not saved?</h3><p>Scores are checked by an anti-cheat system. Reload the page and play again. If it keeps happening, email contact@vectofly.com with your device and browser.</p><h3>How do I report a bug or send feedback?</h3><p>Use the Report a bug / send feedback link at the bottom of the menu, or email contact@vectofly.com.</p>
+<p>Still stuck? <a href="contact.html">Contact us</a> or <a href="mailto:contact@vectofly.com?subject=VectoFly%20bug%20report%20or%20feedback" data-feedback>report a bug</a>.</p>
+<p><a class="play" href="./">Play VectoFly</a></p>
+<footer class="site">
+<div><a href="index.html">Play</a> <a href="how-to-play.html">How to play</a> <a href="leaderboard.html">Leaderboard</a> <a href="about.html">About</a> <a href="contact.html">Contact</a> <a href="privacy.html">Privacy</a> <a href="terms.html">Terms</a> <a href="cookie-policy.html">Cookies</a> <a href="disclaimer.html">Disclaimer</a> <a href="dmca.html">DMCA</a></div>
+<div>&copy; 2026 VectoFly &middot; <a href="https://vectofly.com/">vectofly.com</a> &middot; <a href="mailto:contact@vectofly.com">contact@vectofly.com</a> &middot; <a href="mailto:contact@vectofly.com?subject=VectoFly%20bug%20report%20or%20feedback" data-feedback>Report a bug / send feedback</a></div>
+</footer>
 </div>
+<script src="js/site.js?v=8" defer></script>
 </body>
 </html>

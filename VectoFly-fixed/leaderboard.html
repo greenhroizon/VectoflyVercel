@@ -1,141 +1,138 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Global Leaderboard | VectoFly</title>
-    <meta
-      name="description"
-      content="Global Leaderboard for VectoFly, the free browser flying game."
-    />
-    <link rel="canonical" href="https://vectofly.com/leaderboard.html" />
-    <link rel="icon" href="favicon.ico" />
-    <link rel="stylesheet" href="css/seo.css" />
-    <script defer src="js/analytics.js"></script>
-  </head>
-  <body class="site-page">
-    <a class="skip-link" href="#page-content">Skip to content</a>
-    <div class="page">
-      <header class="site-header">
-        <a class="brand" href="./" aria-label="VectoFly home"
-          ><span class="brand-mark">↗</span
-          ><span>VectoFly<small>ENDLESS SKIES</small></span></a
-        >
-        <nav class="primary-nav" aria-label="Main navigation">
-          <a href="./">Play</a
-          ><a href="leaderboard.html" aria-current="page">Leaderboard</a
-          ><a href="how-to-play.html">How to play</a
-          ><a href="about.html">About</a><a href="contact.html">Contact</a>
-        </nav>
-        <a class="play-link" href="./"
-          >Let’s fly <span aria-hidden="true">↗</span></a
-        >
-      </header>
-      <div class="page-hero">
-        <div class="hero-copy">
-          <p class="eyebrow">THE WORLD STANDINGS</p>
-          <p class="hero-heading">Small plane. Global ambitions.</p>
-          <p class="hero-description">
-            Meet the pilots going the distance. Your next flight could take you
-            higher.
-          </p>
-        </div>
-        <div class="hero-art">
-          <svg viewBox="0 0 300 180" fill="none" aria-hidden="true">
-            <ellipse
-              cx="148"
-              cy="155"
-              rx="91"
-              ry="8"
-              fill="#59332e"
-              opacity=".09"
-            />
-            <path d="M53 91L215 67L239 93L111 116Z" fill="#f25346" />
-            <path d="M53 91L111 116L101 85Z" fill="#cc433b" />
-            <path d="M104 87L148 34L180 33L157 80Z" fill="#ff8772" />
-            <path d="M113 102L182 138L212 131L156 94Z" fill="#ef6d5c" />
-            <path d="M57 91L34 55L59 57L86 85Z" fill="#f25346" />
-            <path d="M215 67L239 93L249 81L237 65Z" fill="#59332e" />
-            <path
-              d="M243 48L243 115"
-              stroke="#59332e"
-              stroke-width="4"
-              stroke-linecap="round"
-            />
-            <path d="M139 76L161 71L158 59L142 61Z" fill="#59332e" />
-            <path
-              d="M105 86L203 72"
-              stroke="#fff4dd"
-              stroke-opacity=".6"
-              stroke-width="3"
-            />
-          </svg>
-        </div>
-      </div>
-      <div class="content-layout">
-        <aside class="page-sidebar">
-          <p class="eyebrow">FLIGHT RECORDS</p>
-          <h2>Every flight is a fresh start.</h2>
-          <p>
-            Fly a little further, collect a little more, and chase your personal
-            best.
-          </p>
-          <a class="play-link" href="./">Take a flight ↗</a>
-          <div class="support-card">
-            <h2>Keep it fair.</h2>
-            <p>
-              Rankings show submitted best scores, not unfinished flights.
-              Choose a public nickname, not personal information.
-            </p>
-          </div>
-        </aside>
-        <main id="page-content" class="content-card">
-          <h1>Global Leaderboard</h1>
-          <p class="updated">Updated 31 October 2026</p>
-          <p>
-            One best score per player ID. Ties are ordered by earliest
-            submission. This service currently retains up to 5,000 ranked
-            players.
-          </p>
-          <p id="boardStatus" role="status">Loading global rankings…</p>
-          <div class="table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>Rank</th>
-                  <th>Pilot</th>
-                  <th>Best score</th>
-                </tr>
-              </thead>
-              <tbody id="rankings"></tbody>
-            </table>
-          </div>
-          <div class="pagination">
-            <button id="previous">Previous</button><span id="pageNumber"></span
-            ><button id="next">Next</button><button id="retry">Refresh</button>
-          </div>
-          <script defer src="js/config.js"></script>
-          <script defer src="js/leaderboard.js"></script>
-        </main>
-      </div>
-      <footer class="site-footer">
-        <div>
-          <a class="brand footer-brand" href="./"
-            >VectoFly<span aria-hidden="true">↗</span></a
-          >
-          <p>A little plane. An endless adventure.</p>
-          <a href="mailto:contact@vectofly.com">contact@vectofly.com</a>
-        </div>
-        <div>
-          <nav aria-label="Policies">
-            <a href="privacy.html">Privacy</a><a href="terms.html">Terms</a
-            ><a href="cookie-policy.html">Cookies</a
-            ><a href="disclaimer.html">Disclaimer</a
-            ><a href="dmca.html">Copyright</a>
-          </nav>
-          <p>© 2026 VectoFly · Made for the joy of flight.</p>
-        </div>
-      </footer>
-    </div>
-  </body>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>World Leaderboard - VectoFly</title>
+<meta name="description" content="The full VectoFly world leaderboard: every pilot's best score, live. Search for your name and see your rank.">
+<meta name="robots" content="index, follow, max-image-preview:large">
+<link rel="canonical" href="https://vectofly.com/leaderboard.html">
+<meta name="theme-color" content="#f7d9aa">
+<link rel="icon" href="favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="192x192" href="img/icon-192.png">
+<link rel="apple-touch-icon" href="img/apple-touch-icon.png">
+<link rel="manifest" href="site.webmanifest">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="VectoFly">
+<meta property="og:title" content="World Leaderboard - VectoFly">
+<meta property="og:description" content="The full VectoFly world leaderboard: every pilot's best score, live. Search for your name and see your rank.">
+<meta property="og:url" content="https://vectofly.com/leaderboard.html">
+<meta property="og:image" content="https://vectofly.com/img/og-image.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="World Leaderboard - VectoFly">
+<meta name="twitter:description" content="The full VectoFly world leaderboard: every pilot's best score, live. Search for your name and see your rank.">
+<meta name="twitter:image" content="https://vectofly.com/img/og-image.jpg">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"VectoFly","item":"https://vectofly.com/"},{"@type":"ListItem","position":2,"name":"Leaderboard","item":"https://vectofly.com/leaderboard.html"}]}</script>
+<style>
+.lbbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:14px 0}
+.lbbar input{flex:1 1 200px;min-width:0;padding:11px 14px;border-radius:10px;border:2px solid #d1b790;background:#fffaf0;font:16px system-ui,sans-serif}
+.lbbar button{padding:11px 18px;border-radius:10px;border:0;background:#68c3c0;color:#fff;font:700 15px system-ui,sans-serif;cursor:pointer}
+.lbstat{display:flex;flex-wrap:wrap;gap:10px;margin:8px 0 4px}
+.lbstat div{flex:1 1 130px;background:rgba(255,255,255,.65);border-radius:12px;padding:10px 14px}
+.lbstat b{display:block;font:700 24px Georgia,serif;color:#59332e}
+.lbstat span{font-size:13px;opacity:.75}
+#lbTable{width:100%;border-collapse:collapse;background:rgba(255,255,255,.6);border-radius:12px;overflow:hidden}
+#lbTable th{background:#59332e;color:#fff6e2;font-weight:600;border:0;text-align:left;padding:10px 12px}
+#lbTable td{padding:9px 12px;border:0;border-top:1px solid rgba(89,51,46,.12)}
+#lbTable td.r{width:64px;font-weight:700;color:#59332e}
+#lbTable td.s{text-align:right;font-variant-numeric:tabular-nums;font-weight:700}
+#lbTable th.s{text-align:right}
+#lbTable tr.me td{background:#f25346;color:#fff}
+#lbTable tr.top3 td.r{font-size:1.2em}
+.pager{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:center;margin:16px 0}
+.pager button{padding:9px 16px;border-radius:9px;border:1px solid #59332e;background:#fffaf0;cursor:pointer;font:600 14px system-ui,sans-serif}
+.pager button:disabled{opacity:.4;cursor:default}
+#lbMsg{margin:14px 0;font-size:15px}
+</style>
+<!-- Google tag (gtag.js) -->
+<script>try{if(localStorage.getItem('vf_ga_off')==='1')window['ga-disable-G-LXSLC7ZVNW']=true;}catch(e){}</script>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-LXSLC7ZVNW"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-LXSLC7ZVNW');
+</script>
+<style>
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;font:17px/1.65 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;color:#2b2320;background:linear-gradient(#e4e0ba,#f7d9aa) fixed;min-height:100vh}
+.wrap{max-width:820px;margin:0 auto;padding:22px 18px 60px}
+header.site{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px 18px;padding-bottom:14px;border-bottom:1px solid rgba(89,51,46,.18);margin-bottom:6px}
+header.site a.brand{font:700 26px Georgia,'Playfair Display',serif;color:#f25346;text-decoration:none;letter-spacing:.5px}
+header.site nav{display:flex;flex-wrap:wrap;gap:2px 14px;font-size:15px}
+header.site nav a{color:#59332e;text-decoration:none;padding:4px 0}
+header.site nav a:hover,header.site nav a[aria-current]{color:#b4372b;text-decoration:underline}
+h1{font-family:'Playfair Display',Georgia,serif;font-size:clamp(1.9em,6vw,2.5em);line-height:1.15;margin:.7em 0 .3em;color:#59332e}
+h2{color:#59332e;margin:1.7em 0 .4em;font-size:1.3em;line-height:1.3}
+h3{color:#59332e;margin:1.2em 0 .2em;font-size:1.05em}
+p,li{overflow-wrap:anywhere}
+a{color:#b4372b}
+.play{display:inline-block;margin:14px 10px 6px 0;padding:13px 30px;background:#f25346;color:#fff;border-radius:10px;text-decoration:none;font-weight:700;box-shadow:0 3px 0 #b4372b}
+.play.alt{background:#68c3c0;box-shadow:0 3px 0 #3f8f8c}
+.card{background:rgba(255,255,255,.6);border-radius:12px;padding:14px 18px;margin:16px 0}
+.note{font-size:14px;opacity:.8}
+table{border-collapse:collapse;width:100%;margin:12px 0;font-size:15px}
+th,td{border:1px solid rgba(89,51,46,.25);padding:7px 10px;text-align:left;vertical-align:top}
+th{background:rgba(255,255,255,.55)}
+.scroll{overflow-x:auto}
+footer.site{margin-top:46px;padding-top:16px;border-top:1px solid rgba(89,51,46,.18);font-size:14px;line-height:2;opacity:.9}
+footer.site a{margin-right:12px;white-space:nowrap}
+@media (max-width:520px){body{font-size:16px}.wrap{padding:16px 14px 50px}header.site nav{font-size:14px}.play{display:block;text-align:center;margin-right:0}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="site"><a class="brand" href="./">VectoFly</a><nav aria-label="Main"><a href="index.html">Play</a><a href="how-to-play.html">How to play</a><a href="leaderboard.html" aria-current="page">Leaderboard</a><a href="about.html">About</a><a href="contact.html">Contact</a></nav></header>
+
+<h1>World Leaderboard</h1>
+<p>Every pilot's best score, updated live. The game menu shows the top 50 - everyone else is here. Scores from all difficulties share this one board (harder difficulties give bigger multipliers).</p>
+<div class="lbstat"><div><b id="stPilots">-</b><span>pilots visited</span></div><div><b id="stGames">-</b><span>games played</span></div><div><b id="stRanked">-</b><span>ranked pilots</span></div><div><b id="stYou">-</b><span>your rank</span></div></div>
+<div class="lbbar"><input id="q" type="search" placeholder="Search a pilot name" autocomplete="off" aria-label="Search pilot name"><button id="refresh" type="button">Refresh</button></div>
+<div id="lbMsg" role="status">Loading the leaderboard...</div>
+<div class="scroll"><table id="lbTable" hidden><thead><tr><th>#</th><th>Pilot</th><th class="s">Score</th></tr></thead><tbody id="lbBody"></tbody></table></div>
+<div class="pager" id="pager" hidden><button id="prev" type="button">Previous</button><span id="pageInfo"></span><button id="next" type="button">Next</button></div>
+<p><a class="play" href="./">Play and climb the board</a></p>
+<p class="note">Cheaters are rejected automatically and removed. Want your name removed or changed? <a href="contact.html">Contact us</a>.</p>
+<script>
+(function(){
+  var PER = 50, all = [], view = [], page = 0, myKey = '', timer = 0;
+  var $ = function(id){ return document.getElementById(id); };
+  try { var s = JSON.parse(localStorage.getItem('vectofly_save_v1') || '{}'); myKey = s.gk || ''; } catch(e){}
+  function esc(t){ return String(t).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+  function fmt(n){ return Number(n).toLocaleString(); }
+  function draw(){
+    var pages = Math.max(1, Math.ceil(view.length / PER)); if (page >= pages) page = pages - 1; if (page < 0) page = 0;
+    var from = page * PER, rows = view.slice(from, from + PER), html = '';
+    rows.forEach(function(e){ var me = myKey && e.k === myKey; html += '<tr class="' + (me ? 'me ' : '') + (e.r <= 3 ? 'top3' : '') + '"><td class="r">' + (e.r === 1 ? '&#129351; ' : e.r === 2 ? '&#129352; ' : e.r === 3 ? '&#129353; ' : '') + e.r + '</td><td>' + esc(e.n) + (me ? ' (you)' : '') + '</td><td class="s">' + fmt(e.s) + '</td></tr>'; });
+    $('lbBody').innerHTML = html; $('lbTable').hidden = !rows.length; $('pager').hidden = view.length <= PER;
+    $('pageInfo').textContent = 'Page ' + (page + 1) + ' of ' + pages; $('prev').disabled = page === 0; $('next').disabled = page >= pages - 1;
+    $('lbMsg').textContent = rows.length ? (view.length === all.length ? 'Showing ' + (from + 1) + '-' + (from + rows.length) + ' of ' + fmt(all.length) + ' pilots.' : fmt(view.length) + ' match' + (view.length === 1 ? '' : 'es') + '.') : (all.length ? 'No pilot with that name.' : 'No scores yet - be the first!');
+  }
+  function load(){
+    $('refresh').disabled = true;
+    fetch('/api/scores?limit=1000&_=' + Date.now(), {cache:'no-store'}).then(function(r){ if (!r.ok) throw new Error(r.status); return r.json(); }).then(function(j){
+      all = (j.scores || []).map(function(e, i){ return {r:i + 1, n:e.n, s:e.s, k:e.k}; });
+      $('stPilots').textContent = typeof j.visitors === 'number' ? fmt(j.visitors) : '-'; $('stGames').textContent = typeof j.games === 'number' ? fmt(j.games) : '-'; $('stRanked').textContent = fmt(all.length);
+      var me = all.filter(function(e){ return myKey && e.k === myKey; })[0]; $('stYou').textContent = me ? '#' + fmt(me.r) : (myKey ? 'top 1000+' : 'play to rank');
+      filter();
+    }).catch(function(){ $('lbMsg').textContent = 'Could not load the leaderboard right now. Please try again in a moment.'; }).then(function(){ $('refresh').disabled = false; });
+  }
+  function filter(){ var q = $('q').value.trim().toLowerCase(); view = q ? all.filter(function(e){ return e.n.toLowerCase().indexOf(q) > -1; }) : all; draw(); }
+  $('q').addEventListener('input', function(){ page = 0; filter(); });
+  $('refresh').addEventListener('click', load);
+  $('prev').addEventListener('click', function(){ page--; draw(); window.scrollTo(0, 0); });
+  $('next').addEventListener('click', function(){ page++; draw(); window.scrollTo(0, 0); });
+  document.addEventListener('visibilitychange', function(){ if (!document.hidden) load(); });
+  load(); timer = setInterval(function(){ if (!document.hidden) load(); }, 20000);
+})();
+</script>
+<footer class="site">
+<div><a href="index.html">Play</a> <a href="how-to-play.html">How to play</a> <a href="leaderboard.html">Leaderboard</a> <a href="about.html">About</a> <a href="contact.html">Contact</a> <a href="privacy.html">Privacy</a> <a href="terms.html">Terms</a> <a href="cookie-policy.html">Cookies</a> <a href="disclaimer.html">Disclaimer</a> <a href="dmca.html">DMCA</a></div>
+<div>&copy; 2026 VectoFly &middot; <a href="https://vectofly.com/">vectofly.com</a> &middot; <a href="mailto:contact@vectofly.com">contact@vectofly.com</a> &middot; <a href="mailto:contact@vectofly.com?subject=VectoFly%20bug%20report%20or%20feedback" data-feedback>Report a bug / send feedback</a></div>
+</footer>
+</div>
+<script src="js/site.js?v=8" defer></script>
+</body>
 </html>

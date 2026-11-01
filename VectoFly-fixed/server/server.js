@@ -75,7 +75,7 @@ function cleanName(n) {
 function api(req, res, url) {
   if (req.method === 'OPTIONS') return send(res, 204, '');
   if (req.method === 'GET') {
-    const limit = Math.max(1, Math.min(100, +url.searchParams.get('limit') || 50));
+    const limit = Math.max(1, Math.min(1000, +url.searchParams.get('limit') || 50));
     return send(res, 200, { scores: sorted().slice(0, limit).map(e => ({ n: e.n, s: e.s, k: pub(e.id) })), visitors: visitors.size, games });
   }
   if (req.method !== 'POST') return send(res, 405, { error: 'method' });
