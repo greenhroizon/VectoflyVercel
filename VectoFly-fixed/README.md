@@ -43,6 +43,12 @@ the obvious abuse.
 
 If neither is set up (or the server cannot be reached) the game falls back to the local board.
 
+## Pilot names and boards (Nov 2026 update)
+- Players cannot type a name. The game generates a random pilot name ("Swift Falcon 42") and the menu has a **New name** button. `js/vectofly.js`, `api/scores.js` and `server/server.js` share the same word lists (keep them identical). The servers accept only that exact format; anything else, including old typed names already in the database, is shown as a name derived from the player id. Name limit is 16 characters.
+- There is no scoreboard while flying. The world leaderboard (top 50) is in the menu and the full list is on `leaderboard.html`. The menu also shows stat tiles (best, world rank, flights, top level) and a results card after each run.
+- Icons: `favicon.ico`, `img/favicon-32.png`, `img/icon-192.png`, `img/icon-512.png`, `img/icon-maskable-512.png`, `img/apple-touch-icon.png` (links use `?v=2` to bypass the 1 year cache; bump it when you change them).
+- If you change the privacy or terms text, update the "Last updated" dates and `sitemap.xml` lastmod.
+
 ## What is in the box
 - `js/game.js` core loop: flat endless world, obstacles, **damage** meter, fuel
 - `js/world.js` flat scrolling ground + scenery for every map

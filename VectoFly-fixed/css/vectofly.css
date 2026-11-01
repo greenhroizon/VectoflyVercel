@@ -1,8 +1,6 @@
 html,body{height:100%}
 body{margin:0;touch-action:none;-webkit-tap-highlight-color:transparent;overflow:hidden;font-family:Georgia,'Playfair Display',serif;background:#f7d9aa;-webkit-user-select:none;user-select:none}
 .header h1{font-family:Georgia,'Playfair Display',serif}
-#live{position:absolute;top:10px;left:10px;width:170px;padding:8px 10px;background:rgba(35,25,15,.55);color:#f4ce93;border-radius:8px;font-size:12px;z-index:5;pointer-events:none}
-#live .lh{letter-spacing:2px;text-transform:uppercase;font-size:9px;color:#68c3c0;margin-bottom:4px}
 ol{margin:0;padding:0;list-style:none}
 ol li{display:flex;gap:6px;padding:2px 0}
 ol li b{width:22px;font-weight:normal;opacity:.7}ol li span{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -25,17 +23,14 @@ ol li.bot{opacity:.65}
 
 
 #playBtn,#soundBtn,.opts label{touch-action:manipulation}
-#live{top:max(10px,env(safe-area-inset-top));left:max(10px,env(safe-area-inset-left))}
 #soundBtn{top:max(10px,env(safe-area-inset-top));right:max(10px,env(safe-area-inset-right))}
 /* narrow / portrait phones: leaderboard moves to the bottom so it never covers the title or plane */
 @media (max-width:40em){
-  #live{top:auto;bottom:max(10px,env(safe-area-inset-bottom));width:150px;font-size:10px;padding:6px 8px}
   .header{top:max(7vh,44px)}.header h1{font-size:3em}
 }
 /* short screens (phones in landscape) */
 @media (max-height:520px){
   .header{top:6px}.header h1{font-size:1.8em}.header h2{display:none}.score{margin:.6em 0 0}
-  #live{width:140px;font-size:10px;padding:5px 8px;top:auto;bottom:max(8px,env(safe-area-inset-bottom))}
   .box{padding:10px 14px}.box h2{font-size:24px}.box p{margin:2px 0 6px;font-size:12px}
   #topList{margin:6px 0;font-size:12px;max-height:84px;overflow:auto}#stats{margin-bottom:6px}
   #playBtn{padding:8px;font-size:15px}.help,.credit{margin-top:4px}
@@ -104,14 +99,11 @@ ol li i{opacity:.9}
 @media (max-width:40em){
   .playing .header h1,.playing .header h2{display:none}
   .playing .header{top:max(52px,calc(env(safe-area-inset-top) + 46px))}
-  .playing #live{top:calc(max(52px,env(safe-area-inset-top) + 46px) + 78px);bottom:auto;width:128px}
 }
 @media (max-height:520px){
   .playing .header h1,.playing .header h2{display:none}
-  .playing #live{top:max(8px,env(safe-area-inset-top));bottom:auto;width:128px}
   .playing .header{top:max(40px,calc(env(safe-area-inset-top) + 36px))}
 }
-@media (max-height:520px) and (max-width:40em){.playing #live{top:calc(max(40px,env(safe-area-inset-top) + 36px) + 70px)}}
 /* menus: use the real visible height on mobile browsers (address bar), fit tiny screens */
 @supports (height:100dvh){.box{max-height:94dvh}#grid{max-height:44dvh}}
 @media (max-width:360px){.box{padding:14px}.box h2{font-size:28px}#diffRow button{font-size:11px;letter-spacing:0}.opts label{margin:0 4px}}
@@ -129,8 +121,6 @@ body.playing #visitors{display:none!important}
 @supports (height:100dvh){.box{max-height:calc(100dvh - 56px)}}
 @media (max-width:360px){#visitors{font-size:11px;padding:4px 10px}}
 /* on phones the menu already shows the leaderboard: hide the in-game mini board behind it so it never collides with the counter */
-@media (max-width:40em){body:not(.playing) #live{display:none}}
-@media (max-height:520px){body:not(.playing) #live{display:none}}
 #visitors .vsep{width:1px;height:12px;background:rgba(244,206,147,.45)}
 
 /* incoming homing spike warning */
@@ -205,3 +195,24 @@ body.playing,body.playing *{touch-action:none;-webkit-touch-callout:none}
 #visitors{position:static;left:auto;bottom:auto;transform:none;z-index:auto;width:max-content;max-width:100%;margin:2px auto 8px;font-size:12px;background:rgba(35,25,15,.78);backdrop-filter:none;-webkit-backdrop-filter:none}
 #panel,#shop{padding-bottom:calc(var(--vfn,0px) + max(14px,env(safe-area-inset-bottom)))}
 @media (max-height:520px){#panel{padding-bottom:calc(var(--vfn,0px) + max(10px,env(safe-area-inset-bottom)))}}
+
+/* ---- menu polish (v11) ---- */
+#logo{display:block;margin:0 auto 4px;width:clamp(46px,13vw,64px);height:auto;border-radius:16px;box-shadow:0 4px 14px rgba(35,25,15,.3);animation:vfBob 3.2s ease-in-out infinite}
+@keyframes vfBob{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-5px) rotate(3deg)}}
+#panel .box{background:linear-gradient(180deg,#fbf3df,#f4e3bd);border:2px solid rgba(209,183,144,.7)}
+.tiles,#stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(70px,1fr));gap:6px}
+#stats{opacity:1;margin:6px 0 10px}
+.tile{background:rgba(255,255,255,.65);border:1px solid rgba(209,183,144,.7);border-radius:10px;padding:6px 4px;display:flex;flex-direction:column;gap:1px;min-width:0}
+.tile b{font:bold clamp(14px,4vw,18px) Georgia,serif;color:#59332e;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tile span{font-size:10px;letter-spacing:1px;text-transform:uppercase;opacity:.65}
+.tile.gold{background:#fff1c4;border-color:#e6bf5a}.tile.gold b{color:#b4372b}
+#result{margin:6px 0 10px}#result[hidden]{display:none}
+#result .badge{display:inline-block;margin:0 0 6px;padding:3px 12px;border-radius:20px;background:#f25346;color:#fff;font:bold 12px Georgia,serif;letter-spacing:2px;animation:vfPop .6s ease-out}
+@keyframes vfPop{0%{transform:scale(.4);opacity:0}70%{transform:scale(1.15)}100%{transform:scale(1);opacity:1}}
+#playBtn{animation:vfPulse 2.2s ease-in-out infinite}
+@keyframes vfPulse{0%,100%{box-shadow:0 4px 0 #b4372b,0 0 0 0 rgba(242,83,70,.45)}50%{box-shadow:0 4px 0 #b4372b,0 0 0 9px rgba(242,83,70,0)}}
+#topList li.you{box-shadow:0 0 0 2px #f25346 inset}
+#topList li b{min-width:2.2em;display:inline-block}
+#topList li i{margin-left:auto;font-weight:700}
+@media (prefers-reduced-motion:reduce){#logo,#playBtn,#result .badge{animation:none}}
+@media (max-height:520px){#logo{display:none}.tile{padding:3px}}

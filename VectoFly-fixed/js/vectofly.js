@@ -146,7 +146,7 @@ var VF = (function(){
           j.scores.forEach(function(e){ if (e && typeof e.s === 'number') arr.push({n:String(e.n).slice(0,16), s:Math.floor(e.s), k:e.k}); });
         }
         arr.sort(function(a,b){ return b.s - a.s; });
-        G.list = arr; G.state = 'ok'; G.err = ''; G.at = Date.now(); paintBoard(); drawLive();
+        G.list = arr; G.state = 'ok'; G.err = ''; G.at = Date.now(); paintBoard();
         if (G.again){ G.again = false; gFetch(true); }
       })
       .catch(function(e){
@@ -197,7 +197,7 @@ var VF = (function(){
         .then(function(j){ if (j && j.k) S.gk = j.k; if (j && j.rank) G.rank = j.rank; G.lastBest = (j && typeof j.best === 'number') ? j.best : score; });
     }
     withTimeout(req, 9000)
-      .then(function(){ G.sub = G.rank ? 'Score saved - you are #' + G.rank + ' in the world!' : 'Score saved to the world board!'; S.gbest = Math.max(S.gbest || 0, G.lastBest || score); save(); patchMine(G.lastBest || score); gFetch(true); paintBoard(); drawLive(); })
+      .then(function(){ G.sub = G.rank ? 'Score saved - you are #' + G.rank + ' in the world!' : 'Score saved to the world board!'; S.gbest = Math.max(S.gbest || 0, G.lastBest || score); save(); patchMine(G.lastBest || score); gFetch(true); paintBoard(); })
       .catch(function(e){
         var why = e && e.code ? e.code : (e && e.status ? 'http ' + e.status : 'no connection');
         G.sub = 'Score not saved (' + why + ').' + (e && e.code === 'ticket' ? ' Reload the page and play again.' : '');
@@ -219,7 +219,7 @@ var VF = (function(){
   }
   function li(r,n,s,cls){
     var e = document.createElement('li'); e.className = cls||'';
-    var a = document.createElement('b'); a.textContent = r+'.';
+    var a = document.createElement('b'); a.textContent = (r >= 1 && r <= 3) ? ['\u{1F947}','\u{1F948}','\u{1F949}'][r-1] : r+'.';
     var b = document.createElement('span'); b.textContent = n;
     var c = document.createElement('i'); c.textContent = s; c.style.fontStyle = 'normal';
     e.appendChild(a); e.appendChild(b); e.appendChild(c); return e;
@@ -227,6 +227,21 @@ var VF = (function(){
   function fill(el, list){
     el.innerHTML = '';
     list.forEach(function(x){ el.appendChild(li(x.r,x.n,x.s,(x.you?'you ':'')+(x.b?'bot':''))); });
+  }
+  function myRank(){
+    if (!gOn() || !G.list || !myKey()) return 0;
+    for (var i = 0; i < G.list.length; i++) if (G.list[i].k === myKey()) return i + 1;
+    return 0;
+  }
+  function tile(label, val, cls){ var d = h('div', 'tile' + (cls ? ' ' + cls : '')); d.appendChild(h('b', '', String(val))); d.appendChild(h('span', '', label)); return d; }
+  function drawStats(){
+    var st = $('stats'); if (!st) return;
+    var r = myRank(), world = gOn() ? (r ? '#' + r : (G.list ? '50+' : '-')) : '-';
+    st.innerHTML = '';
+    st.appendChild(tile('Best score', S.hi.toLocaleString(), 'gold'));
+    st.appendChild(tile('World rank', world));
+    st.appendChild(tile('Flights', S.games.toLocaleString()));
+    st.appendChild(tile('Top level', S.bestLevel));
   }
   function paintBoard(){
     var note = $('lbNote'), el = $('topList'); if (!el) return;
@@ -246,16 +261,10 @@ var VF = (function(){
       list = localAll().slice(0,50).map(function(x,i){ x.r = i+1; return x; });
     }
     if (G.sub && gOn()) msg = G.sub;
-    fill(el, list); note.textContent = msg;
+    if (gOn() && G.list && !G.sub && G.state !== 'err' && myRank()) msg = 'You are #' + myRank() + ' in the world with ' + G.list[myRank()-1].s.toLocaleString();
+    fill(el, list); note.textContent = msg; drawStats();
+    var me = el.querySelector('li.you'); if (me && el.scrollHeight > el.clientHeight){ var t = me.offsetTop - el.clientHeight/2 + me.clientHeight/2; el.scrollTop = Math.max(0, t); }
     var vc = $('visitors'); if (vc){ vc.style.display = (gOn() && G.visitors >= 0) ? 'flex' : 'none'; vc.innerHTML = '<span class="vdot"></span><span><b>' + G.visitors.toLocaleString() + '</b> ' + (G.visitors === 1 ? 'pilot' : 'pilots') + '</span><span class="vsep"></span><span><b>' + G.games.toLocaleString() + '</b> ' + (G.games === 1 ? 'game' : 'games') + ' played</span>'; }
-  }
-  function drawLive(){
-    var cur = {n:S.name||'You', s:F.score(), you:1}, list = all().concat([cur]).sort(function(a,b){ return b.s-a.s || (b.you?1:-1); });
-    list.forEach(function(x,i){ x.r = i+1; });
-    var me = list.indexOf(cur), shown = list.slice(0,5);
-    if (me >= 5) shown = list.slice(0,4).concat([cur]);
-    var h = document.querySelector('#live .lh'); if (h) h.textContent = (gOn() && G.list) ? 'World Leaderboard' : 'Live Leaderboard';
-    fill($('liveList'), shown);
   }
 
   // ---------- PANEL (menu + game over) ----------
@@ -282,8 +291,20 @@ var VF = (function(){
     mode = m; document.body.classList.remove('playing');
     $('pTitle').textContent = mode==='over' ? 'Game Over' : 'VectoFly';
     $('pSub').textContent = mode==='over'
-      ? (cheated ? 'Cheat detected - this run was not counted.' : (game.reason ? game.reason + '  ' : '') + 'Score ' + F.score() + (newBest ? '  -  NEW BEST!' : '  -  Best ' + S.hi) + '  -  +' + lastEarned + ' coins' + (runBonus ? ' (' + runBonus + ' bonus)' : ''))
+      ? (cheated ? 'Cheat detected - this run was not counted.' : (game.reason || 'Nice flight!'))
       : 'Grab blue pills to repair, catch orange fuel cans, avoid the red ones.';
+    var rs = $('result'); if (rs){
+      rs.innerHTML = ''; rs.hidden = !(mode === 'over' && !cheated);
+      if (!rs.hidden){
+        if (newBest) rs.appendChild(h('div', 'badge', 'NEW BEST!'));
+        var row = h('div', 'tiles');
+        row.appendChild(tile('Score', F.score().toLocaleString(), 'gold'));
+        row.appendChild(tile('Best', S.hi.toLocaleString()));
+        row.appendChild(tile('Coins', '+' + lastEarned + (runBonus ? ' (' + runBonus + ' bonus)' : '')));
+        rs.appendChild(row);
+      }
+    }
+    var lg = $('logo'); if (lg) lg.style.display = mode === 'over' ? 'none' : '';
     $('wallet').textContent = 'Coins: ' + S.wallet + '   |   ' + plane().n + ' on ' + curMap().n;
     var gl = $('goal'); if (gl){ var nx = nextUnlock(); gl.textContent = nx ? 'Next unlock: ' + nx.n + ' (' + nx.p + ' coins)' + (S.wallet >= nx.p ? ' - you can buy it now!' : ' - ' + (nx.p - S.wallet) + ' to go') : 'Everything unlocked - amazing!'; }
     var dr = $('diffRow'); dr.innerHTML = '';
@@ -292,7 +313,7 @@ var VF = (function(){
     $('playBtn').textContent = mode==='over' ? 'Play again' : 'Play';
     $('pilotName').textContent = S.name;
     paintBoard(); gFetch(false); if (window.vfWireFeedback) vfWireFeedback($('panel'));
-    $('stats').textContent = 'Best ' + S.hi + '  |  Pills ' + S.coins + '  |  Flights ' + S.games + '  |  Top level ' + S.bestLevel;
+    drawStats();
     $('optMusic').checked = S.music; $('optSfx').checked = S.sfx; $('optVib').checked = S.vib !== false;
     $('panel').className = '';
   }
@@ -646,7 +667,6 @@ var VF = (function(){
     var dtS = Math.min(deltaTime, 50)/1000;
     if (dx||dy){ held += dtS; var ramp = 1 + Math.min(held, .5)/.5; mousePos = {x:Math.max(-1,Math.min(1,mousePos.x+dx*1.8*ramp*dtS)), y:Math.max(-1,Math.min(1,mousePos.y+dy*2.2*ramp*dtS))}; } else held = 0;
     if (engine) engine.frequency.value = 40 + game.speed*70000;
-    if (Date.now()-lastBoard > 250){ lastBoard = Date.now(); drawLive(); }
   };
 
   // ---------- INPUT / LIFECYCLE ----------
@@ -667,7 +687,7 @@ var VF = (function(){
   function init(){
     load(); if (S.wallet < 0) S.wallet = S.coins;
     if (!okName(S.name)){ S.name = genName(); save(); }   // old typed names are replaced by a random pilot name
-    $('rerollName').onclick = function(){ var n; do { n = genName(); } while (n === S.name); S.name = n; save(); $('pilotName').textContent = n; drawLive(); }; drawPanel('menu'); sdkInit(); drawLive(); gVisit(); dailyGift(); drawPanel('menu');
+    $('rerollName').onclick = function(){ var n; do { n = genName(); } while (n === S.name); S.name = n; save(); $('pilotName').textContent = n; }; drawPanel('menu'); sdkInit(); gVisit(); dailyGift(); drawPanel('menu');
     // keep the world board fresh on every device: poll while the page is visible, refresh the moment you come back
     setInterval(function(){ if (!document.hidden) gFetch(true); }, 10000);
     document.addEventListener('visibilitychange', function(){ if (!document.hidden) gFetch(true); });
