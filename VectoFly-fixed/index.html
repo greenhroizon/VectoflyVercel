@@ -12,6 +12,7 @@
 <link rel="canonical" href="https://vectofly.com/">
 <link rel="alternate" hreflang="en" href="https://vectofly.com/">
 <link rel="alternate" hreflang="x-default" href="https://vectofly.com/">
+<meta name="google-adsense-account" content="ca-pub-7644045441600017">
 <meta name="theme-color" content="#f7d9aa">
 <meta name="color-scheme" content="light">
 <meta name="format-detection" content="telephone=no">
@@ -55,9 +56,9 @@
 <link rel="preconnect" href="https://sdk.crazygames.com" crossorigin>
 <link rel="preload" href="js/three.min.js" as="script">
 
-<link rel="stylesheet" href="css/game.css?v=8">
-<link rel="stylesheet" href="css/vectofly.css?v=8">
-<link rel="stylesheet" href="css/seo.css?v=8">
+<link rel="stylesheet" href="css/game.css?v=9">
+<link rel="stylesheet" href="css/vectofly.css?v=9">
+<link rel="stylesheet" href="css/seo.css?v=9">
 
 <!-- Structured data (JSON-LD) -->
 <script type="application/ld+json">{"@context": "https://schema.org", "@type": "WebSite", "@id": "https://vectofly.com/#website", "url": "https://vectofly.com/", "name": "VectoFly", "description": "Free endless 3D plane game you can play online in your browser.", "inLanguage": "en", "publisher": {"@id": "https://vectofly.com/#org"}}</script>
@@ -66,13 +67,13 @@
 <script type="application/ld+json">{"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": "What is VectoFly?", "acceptedAnswer": {"@type": "Answer", "text": "VectoFly is a free endless 3D plane game that runs in your browser. You fly over an endless world, avoid red spikes, collect blue repair pills and orange fuel cans, and try to reach the top of the global leaderboard."}}, {"@type": "Question", "name": "Is VectoFly free to play?", "acceptedAnswer": {"@type": "Answer", "text": "Yes. VectoFly is completely free to play online. There is nothing to download or install and no account is required."}}, {"@type": "Question", "name": "How do I play VectoFly?", "acceptedAnswer": {"@type": "Answer", "text": "On a phone or tablet, slide a thumb anywhere on the screen to steer. On a computer, move the mouse or use the arrow keys or WASD. Press Space to start, P to pause and M to mute. Collect blue pills to repair damage and orange cans to refuel."}}, {"@type": "Question", "name": "Can I play VectoFly on mobile?", "acceptedAnswer": {"@type": "Answer", "text": "Yes. VectoFly works on phones, tablets and desktop computers in any modern browser that supports WebGL, using touch controls on mobile."}}, {"@type": "Question", "name": "Does VectoFly have a leaderboard?", "acceptedAnswer": {"@type": "Answer", "text": "Yes. The menu shows the top 50 pilots in the world and a full leaderboard page lists every pilot. Each pilot keeps one best score."}}, {"@type": "Question", "name": "Are there different planes and maps?", "acceptedAnswer": {"@type": "Answer", "text": "Yes. The first five planes and first four maps are free, and in the Hangar you can unlock more planes and paint patterns with coins, and the Maps menu lets you fly through different worlds. You can also pick Easy, Medium, Hard or Hell difficulty."}}]}</script>
 
 <script defer src="https://sdk.crazygames.com/crazygames-sdk-v3.js"></script>
-<script defer src="js/config.js?v=8"></script>
+<script defer src="js/config.js?v=9"></script>
 <script defer src="js/TweenMax.min.js"></script>
 <script defer src="js/three.min.js"></script>
-<script defer src="js/world.js?v=8"></script>
-<script defer src="js/planes.js?v=8"></script>
-<script defer src="js/vectofly.js?v=8"></script>
-<script defer src="js/game.js?v=8"></script>
+<script defer src="js/world.js?v=9"></script>
+<script defer src="js/planes.js?v=9"></script>
+<script defer src="js/vectofly.js?v=9"></script>
+<script defer src="js/game.js?v=9"></script>
 <!-- Google tag (gtag.js) -->
 <script>try{if(localStorage.getItem('vf_ga_off')==='1')window['ga-disable-G-LXSLC7ZVNW']=true;}catch(e){}</script>
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-LXSLC7ZVNW"></script>
@@ -123,7 +124,6 @@
   <div id="live"><div class="lh">Live Leaderboard</div><ol id="liveList"></ol></div>
   <button id="soundBtn" title="Sound (M)">&#9835;</button>
   <div id="warn" aria-hidden="true">!</div>
-  <div id="visitors" title="Pilots who visited and total games played"></div>
   <div id="panel">
     <div class="box">
       <div class="mh">
@@ -150,6 +150,7 @@
         <div class="help">Touch: slide a thumb anywhere to steer &middot; Mouse, arrow keys or WASD also work &middot; Space = play &middot; P = pause &middot; M = mute</div>
       </div>
       <div class="mf">
+        <div id="visitors" title="Pilots who visited and total games played"></div>
         <a class="fb" href="mailto:contact@vectofly.com?subject=VectoFly%20bug%20report%20or%20feedback" data-feedback>&#9993; Report a bug / send feedback</a>
         <div class="legal"><a href="how-to-play.html" target="_blank">How to play</a> &middot; <a href="leaderboard.html" target="_blank">Leaderboard</a> &middot; <a href="about.html" target="_blank">About</a> &middot; <a href="contact.html" target="_blank">Contact</a> &middot; <a href="privacy.html" target="_blank">Privacy</a> &middot; <a href="terms.html" target="_blank">Terms</a> &middot; <a href="cookie-policy.html" target="_blank">Cookies</a> &middot; <a href="disclaimer.html" target="_blank">Disclaimer</a> &middot; <a href="dmca.html" target="_blank">DMCA</a></div>
         <div class="credit">Based on "The Aviator" by Karim Maaloul (Codrops)</div>
@@ -191,6 +192,6 @@
   </article>
 </main>
 <noscript><p style="position:fixed;top:40%;width:100%;text-align:center;font:18px sans-serif">VectoFly needs JavaScript and WebGL. Please enable JavaScript to play.</p></noscript>
-<script src="js/site.js?v=8" defer></script>
+<script src="js/site.js?v=9" defer></script>
 </body>
 </html>

@@ -162,3 +162,8 @@ On-screen buttons show while flying on every device: **Up / Down** (bottom right
 - Narrow / portrait screens: the world is squeezed horizontally (XS) and the camera is fitted to it, so spikes and the plane stay large and you get the same reaction time as on a monitor. Scoring is unaffected.
 - Obstacle director: minimum time between waves (0.8 s, 0.95 s on touch), reachable gates that follow readable patterns, difficulty that adapts to how you play, spikes that avoid pills and fuel, homing spikes and punishment for standing still.
 - Free from the start: the 5 cheapest planes and 4 cheapest maps. Daily gift, close-call and pill-combo bonus coins, and a "next unlock" goal in the menu.
+
+## Google AdSense
+- `<meta name="google-adsense-account" content="ca-pub-7644045441600017">` is in every page, and `ads.txt` is at the site root.
+- No ad code runs yet. After AdSense approves vectofly.com: open `js/ads.js`, set `ENABLED = true` (optionally add ad-unit slot ids), redeploy. The empty `.ad-slot` boxes on the info pages then fill in; the game screen never shows ads.
+- For visitors in the EU/UK/Switzerland, turn on Google's consent message in AdSense (Privacy & messaging). The privacy and cookie pages already describe ads.

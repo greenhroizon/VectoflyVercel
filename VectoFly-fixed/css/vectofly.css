@@ -194,3 +194,14 @@ body.playing,body.playing *{touch-action:none;-webkit-touch-callout:none}
 #grid{grid-template-columns:repeat(auto-fill,minmax(min(150px,44%),1fr));max-height:56vh}
 @supports (height:100dvh){#grid{max-height:56dvh}}
 @media (max-width:420px){#grid{gap:6px}.card{padding:6px;font-size:11px}}
+
+/* analytics notice reserves space: menu, counter and shop move up instead of being covered */
+#panel{padding-bottom:calc(var(--vfn,0px) + max(54px,env(safe-area-inset-bottom)))}
+#shop{padding-bottom:calc(var(--vfn,0px) + max(14px,env(safe-area-inset-bottom)))}
+#visitors{bottom:calc(var(--vfn,0px) + max(10px,env(safe-area-inset-bottom)))}
+@media (max-height:520px){#panel{padding-bottom:calc(var(--vfn,0px) + max(46px,env(safe-area-inset-bottom)))}}
+
+/* the visitor counter lives inside the menu now (no floating pill that can overlap anything) */
+#visitors{position:static;left:auto;bottom:auto;transform:none;z-index:auto;width:max-content;max-width:100%;margin:2px auto 8px;font-size:12px;background:rgba(35,25,15,.78);backdrop-filter:none;-webkit-backdrop-filter:none}
+#panel,#shop{padding-bottom:calc(var(--vfn,0px) + max(14px,env(safe-area-inset-bottom)))}
+@media (max-height:520px){#panel{padding-bottom:calc(var(--vfn,0px) + max(10px,env(safe-area-inset-bottom)))}}
