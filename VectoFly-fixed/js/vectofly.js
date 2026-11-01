@@ -296,7 +296,7 @@ var VF = (function(){
     $('pTitle').textContent = mode==='over' ? 'Game Over' : 'VectoFly';
     $('pSub').textContent = mode==='over'
       ? (cheated ? 'Cheat detected - this run was not counted.' : (game.reason || 'Nice flight!'))
-      : 'Grab blue pills to repair, catch orange fuel cans, avoid the red ones.';
+      : '';
     var rs = $('result'); if (rs){
       rs.innerHTML = ''; rs.hidden = !(mode === 'over' && !cheated);
       if (!rs.hidden){

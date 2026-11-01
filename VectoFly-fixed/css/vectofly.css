@@ -287,3 +287,13 @@ body.playing,body.playing *{touch-action:none;-webkit-touch-callout:none}
 .playing .header .score__value{color:var(--ink);text-shadow:0 1px 0 rgba(255,250,240,.8)}
 .playing .header .score__value--energy{background-color:#8a6a47}
 .playing .header .score__content:nth-child(2){border-color:#b59a73}
+
+#panel #pSub:empty{display:none}
+/* title block centred: plane above, name centred under it */
+#panel .mh{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:.35em;margin-bottom:.9em}
+#panel .ttl{text-align:center}
+#panel #pTitle{text-align:center}
+#panel #result,#panel #gift{align-self:stretch;text-align:center}
+#panel #gift{align-self:center}
+#panel #result .tiles{text-align:left}
+@media (max-height:520px){#panel .mh{flex-direction:row;gap:.8em}}
