@@ -1,7 +1,8 @@
 .game-holder {
-	position: absolute;
-	width: 100%;
-	height: 100%;
+	position: fixed;
+	top: 0; right: 0; bottom: 0; left: 0;
+	width: auto;
+	height: auto;
 	background: -webkit-linear-gradient(#e4e0ba, #f7d9aa);
 	background: linear-gradient(#e4e0ba, #f7d9aa);
 }
@@ -9,9 +10,9 @@
 .world {
 	position: absolute;
 	overflow: hidden;
-	width: 100%;
-	height: 100%;
+	top: 0; right: 0; bottom: 0; left: 0;
 }
+.world canvas { display: block; width: 100% !important; height: 100% !important; }
 
 .header {
 	position: absolute;

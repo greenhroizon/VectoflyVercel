@@ -114,7 +114,7 @@ footer.site a{margin-right:12px;white-space:nowrap}
   }
   function load(){
     $('refresh').disabled = true;
-    fetch('/api/scores?limit=1000&_=' + Date.now(), {cache:'no-store'}).then(function(r){ if (!r.ok) throw new Error(r.status); return r.json(); }).then(function(j){
+    fetch('/api/scores?limit=1000', {cache:'no-store'}).then(function(r){ if (!r.ok) throw new Error(r.status); return r.json(); }).then(function(j){
       all = (j.scores || []).map(function(e, i){ return {r:i + 1, n:e.n, s:e.s, k:e.k}; });
       $('stPilots').textContent = typeof j.visitors === 'number' ? fmt(j.visitors) : '-'; $('stGames').textContent = typeof j.games === 'number' ? fmt(j.games) : '-'; $('stRanked').textContent = fmt(all.length);
       var me = all.filter(function(e){ return myKey && e.k === myKey; })[0]; $('stYou').textContent = me ? '#' + fmt(me.r) : (myKey ? 'top 1000+' : 'play to rank');
@@ -126,8 +126,9 @@ footer.site a{margin-right:12px;white-space:nowrap}
   $('refresh').addEventListener('click', load);
   $('prev').addEventListener('click', function(){ page--; draw(); window.scrollTo(0, 0); });
   $('next').addEventListener('click', function(){ page++; draw(); window.scrollTo(0, 0); });
-  document.addEventListener('visibilitychange', function(){ if (!document.hidden) load(); });
-  load(); timer = setInterval(function(){ if (!document.hidden) load(); }, 20000);
+  var last = 0, loadSoon = function(){ if (Date.now() - last > 15000){ last = Date.now(); load(); } };
+  document.addEventListener('visibilitychange', function(){ if (!document.hidden) loadSoon(); });
+  last = Date.now(); load(); timer = setInterval(function(){ if (!document.hidden){ last = Date.now(); load(); } }, 60000);
 })();
 </script>
 <div class="ad-slot" data-ad-slot="bottom" aria-label="Advertisement"></div>

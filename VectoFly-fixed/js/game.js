@@ -97,10 +97,20 @@ var HEIGHT, WIDTH,
 
 //INIT THREE JS, SCREEN AND MOUSE EVENTS
 
+// The size of what is really on screen: the full-screen #world box (fixed to the visible viewport), not window.innerHeight,
+// which some mobile browsers report too small after their address bar or navigation bar hides (that left a blank strip at the bottom).
+function viewSize() {
+  var el = document.getElementById('world'), r = el ? el.getBoundingClientRect() : null, vv = window.visualViewport;
+  var w = Math.round((r && r.width) || (vv && vv.width) || window.innerWidth);
+  var h = Math.round((r && r.height) || (vv && vv.height) || window.innerHeight);
+  return { w: Math.max(w, 1), h: Math.max(h, 1) };
+}
+
 function createScene() {
 
-  HEIGHT = window.innerHeight;
-  WIDTH = window.innerWidth;
+  var vs = viewSize();
+  HEIGHT = vs.h;
+  WIDTH = vs.w;
 
   scene = new THREE.Scene();
   aspectRatio = WIDTH / HEIGHT; updateXS();
@@ -131,13 +141,19 @@ function createScene() {
 
   window.addEventListener('resize', handleWindowResize, false);
   window.addEventListener('orientationchange', function(){ setTimeout(handleWindowResize,300); }, false);
+  window.addEventListener('pageshow', handleWindowResize, false);
+  document.addEventListener('fullscreenchange', function(){ setTimeout(handleWindowResize,200); }, false);
+  if (window.visualViewport) window.visualViewport.addEventListener('resize', handleWindowResize, false);
+  // some phones never send a resize when the browser bars hide: look again twice a second (very cheap)
+  setInterval(function(){ var v = viewSize(); if (v.w !== WIDTH || v.h !== HEIGHT) handleWindowResize(); }, 500);
 }
 
 // MOUSE AND SCREEN EVENTS
 
 function handleWindowResize() {
-  HEIGHT = window.innerHeight;
-  WIDTH = window.innerWidth;
+  var vs = viewSize();
+  HEIGHT = vs.h;
+  WIDTH = vs.w;
   renderer.setSize(WIDTH, HEIGHT);
   aspectRatio = camera.aspect = WIDTH / HEIGHT; updateXS();
   camera.updateProjectionMatrix();

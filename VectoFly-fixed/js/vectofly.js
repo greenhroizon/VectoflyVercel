@@ -219,7 +219,7 @@ var VF = (function(){
   }
   function li(r,n,s,cls){
     var e = document.createElement('li'); e.className = cls||'';
-    var a = document.createElement('b'); a.textContent = (r >= 1 && r <= 3) ? ['\u{1F947}','\u{1F948}','\u{1F949}'][r-1] : r+'.';
+    var a = document.createElement('b'); a.textContent = r;
     var b = document.createElement('span'); b.textContent = n;
     var c = document.createElement('i'); c.textContent = s; c.style.fontStyle = 'normal';
     e.appendChild(a); e.appendChild(b); e.appendChild(c); return e;
@@ -649,6 +649,7 @@ var VF = (function(){
       var c0 = cur[0].map(Math.round), c1 = cur[1].map(Math.round);
       // sky gradient reaches the horizon colour exactly at the horizon line (screen centre), so ground fog blends in seamlessly
       $('gameHolder').style.background = 'linear-gradient(rgb('+c0+'),rgb('+c1+') 50%,rgb('+c1+'))';
+      document.documentElement.style.background = 'rgb('+c1+')';
       if (typeof scene !== 'undefined'){ scene.fog.color.setRGB(c1[0]/255,c1[1]/255,c1[2]/255); hemisphereLight.color.setRGB(.55+c0[0]/255*.45, .55+c0[1]/255*.45, .55+c0[2]/255*.45); }
       hemisphereLight.intensity = .14 + .42*bright; shadowLight.intensity = .12 + .66*bright;
       var sun = $('sun'), night = st === 3;
@@ -693,10 +694,11 @@ var VF = (function(){
     if (!okName(S.name)){ S.name = genName(); save(); }   // old typed names are replaced by a random pilot name
     $('rerollName').onclick = function(){ var n; do { n = genName(); } while (n === S.name); S.name = n; save(); $('pilotName').textContent = n; }; drawPanel('menu'); sdkInit(); gVisit(); dailyGift(); drawPanel('menu');
     // keep the world board fresh on every device: poll while the page is visible, refresh the moment you come back
-    setInterval(function(){ if (!document.hidden) gFetch(true); }, 10000);
-    document.addEventListener('visibilitychange', function(){ if (!document.hidden) gFetch(true); });
-    window.addEventListener('online', function(){ G.dead = false; gFetch(true); });
-    window.addEventListener('focus', function(){ gFetch(true); });
+    function menuRefresh(){ if (!document.hidden && !document.body.classList.contains('playing')) gFetch(true); }
+    setInterval(menuRefresh, 30000);
+    document.addEventListener('visibilitychange', menuRefresh);
+    window.addEventListener('online', function(){ G.dead = false; menuRefresh(); });
+    window.addEventListener('focus', menuRefresh);
     $('playBtn').onclick = begin;
     $('hangarBtn').onclick = function(){ openShop('planes'); };
     $('mapsBtn').onclick = function(){ openShop('maps'); };
