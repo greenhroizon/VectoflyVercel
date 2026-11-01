@@ -263,7 +263,11 @@ var VF = (function(){
     if (G.sub && gOn()) msg = G.sub;
     if (gOn() && G.list && !G.sub && G.state !== 'err' && myRank()) msg = 'You are #' + myRank() + ' in the world with ' + G.list[myRank()-1].s.toLocaleString();
     fill(el, list); note.textContent = msg; drawStats();
-    var me = el.querySelector('li.you'); if (me && el.scrollHeight > el.clientHeight){ var t = me.offsetTop - el.clientHeight/2 + me.clientHeight/2; el.scrollTop = Math.max(0, t); }
+    var me = el.querySelector('li.you');
+    if (me && me.previousSibling && me.previousSibling.previousSibling && me.previousSibling.previousSibling.previousSibling && el.scrollHeight > el.clientHeight){   // only when you are below the first few rows
+      var off = me.getBoundingClientRect().top - el.getBoundingClientRect().top + el.scrollTop;
+      el.scrollTop = Math.max(0, off - el.clientHeight/2 + me.clientHeight/2);
+    } else el.scrollTop = 0;
     var vc = $('visitors'); if (vc){ vc.style.display = (gOn() && G.visitors >= 0) ? 'flex' : 'none'; vc.innerHTML = '<span class="vdot"></span><span><b>' + G.visitors.toLocaleString() + '</b> ' + (G.visitors === 1 ? 'pilot' : 'pilots') + '</span><span class="vsep"></span><span><b>' + G.games.toLocaleString() + '</b> ' + (G.games === 1 ? 'game' : 'games') + ' played</span>'; }
   }
 
@@ -304,7 +308,7 @@ var VF = (function(){
         rs.appendChild(row);
       }
     }
-    var lg = $('logo'); if (lg) lg.style.display = mode === 'over' ? 'none' : '';
+
     $('wallet').textContent = 'Coins: ' + S.wallet + '   |   ' + plane().n + ' on ' + curMap().n;
     var gl = $('goal'); if (gl){ var nx = nextUnlock(); gl.textContent = nx ? 'Next unlock: ' + nx.n + ' (' + nx.p + ' coins)' + (S.wallet >= nx.p ? ' - you can buy it now!' : ' - ' + (nx.p - S.wallet) + ' to go') : 'Everything unlocked - amazing!'; }
     var dr = $('diffRow'); dr.innerHTML = '';
