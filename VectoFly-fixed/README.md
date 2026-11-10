@@ -50,9 +50,9 @@ If neither is set up (or the server cannot be reached) the game falls back to th
 - If you change the privacy or terms text, update the "Last updated" dates and `sitemap.xml` lastmod.
 
 ## Ads (Monetag)
-`js/ads.js` has one `CONFIG` block: the Monetag all-in-one tag (`multitag.src`), optional zone boxes (`slots`) and an optional Direct Link. Blank = nothing loads. The tag loads after the page is ready (info pages) or after the first finished run (game). Anything Monetag adds on top of the page is hidden while flying.
-- Set frequency caps and switch off unwanted formats in the Monetag dashboard (Multitag settings).
-- `<meta name="monetag" ...>` is in every page for site verification.
+`js/ads.js` loads four Monetag zones, each at the right moment and never while flying: OnClick pop-under (menu, fires on first click, opens behind the game, capped 20 min), In-Page Push (menu idle 6 s / after first run), Push notification (after first run; needs `sw.js` in the site root, downloaded from Monetag), Vignette (game-over of runs 3, 6, 9..., capped 10 min). Overlays added by Monetag are hidden during a run.
+- Set intervals in the Monetag dashboard too (In-Page Push: first show 10+ s, interval 3+ min; Vignette: interval 10+ min).
+- `<meta name="monetag" ...>` is in every page for verification.
 - Do not reward clicks or put ads next to buttons.
 
 ## Updates page
