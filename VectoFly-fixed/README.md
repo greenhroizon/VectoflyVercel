@@ -49,6 +49,36 @@ If neither is set up (or the server cannot be reached) the game falls back to th
 - Icons: `favicon.ico`, `img/favicon-32.png`, `img/icon-192.png`, `img/icon-512.png`, `img/icon-maskable-512.png`, `img/apple-touch-icon.png` (links use `?v=2` to bypass the 1 year cache; bump it when you change them).
 - If you change the privacy or terms text, update the "Last updated" dates and `sitemap.xml` lastmod.
 
+## Ads (Monetag)
+`js/ads.js` has one `CONFIG` block: the Monetag all-in-one tag (`multitag.src`), optional zone boxes (`slots`) and an optional Direct Link. Blank = nothing loads. The tag loads after the page is ready (info pages) or after the first finished run (game). Anything Monetag adds on top of the page is hidden while flying.
+- Set frequency caps and switch off unwanted formats in the Monetag dashboard (Multitag settings).
+- `<meta name="monetag" ...>` is in every page for site verification.
+- Do not reward clicks or put ads next to buttons.
+
+## Updates page
+`updates.html` is the public changelog (newest first, one `<section class="rel">` per version with a date). When you ship a change, add a new section at the top, update the `jump` links, set `lastmod` for `updates.html` in `sitemap.xml`, and change the "Last updated" date on any legal page whose text you changed.
+
+## QA checklist (run before every deploy)
+Tested in Nov 2026 on desktop, Pixel 7, iPhone SE and a 280 px phone (headless Chrome, slowed CPU):
+- All 11 pages load with no errors, no broken links or assets, valid structured data, no sideways scrolling.
+- All 32 planes and all 50 maps start and run; every map's hazards spawn without errors; 66 paints load on the new planes.
+- Menu, options, Low graphics, Hangar buying, difficulty, pause (P / tap / click), keyboard and touch steering, rotation, game over, repeated runs.
+- Leaderboard API (`api/scores.js`) against a fake Firebase: visits, tickets, replay, tampering, name replacement, limits, rate limiting, database outage.
+- Damaged saves, blocked/full storage and an offline or failing API do not stop the game.
+- 14 runs in a row: no memory growth.
+Not covered by these tests: real devices, real Firebase and Vercel, ad behaviour and sound on real speakers.
+
+## Performance on slow phones (Nov 2026)
+- The game now starts when our own scripts are ready, not when every third-party script (Analytics) has finished. A loading screen (`#boot`) shows until the first frame.
+- Graphics quality adapts by itself (`Q` in `js/game.js`): level 0 shadows, 1 no shadows, 2 lower resolution, 3 lowest. It steps down when the average frame takes over ~31 ms and remembers the level (`vf_q` in localStorage). Phones with 2 GB of memory or few cores start at level 1. The menu has a "Low graphics" checkbox that forces level 2.
+- Phone pixel ratio is capped at 1.25 and shadows use the cheaper filter; the hangar preview renderer no longer uses anti-aliasing on phones.
+
+## Planes, maps and hazards (Nov 2026 update)
+- 32 planes (models in `js/planes.js`, perks in `PLANES` in `js/vectofly.js`) and 50 maps. To add a plane, add a `K.yourkind` builder in `js/planes.js` and a `PLANES` entry.
+- Every map has `haz:[...]`, its own threats from `js/hazards.js`: `fighter`, `ufo`, `bomber`, `meteor`, `bird`, `lightning`, `laser`, `fireball`, `icicle`, `gust`. Old maps are assigned in `HAZ_OF`, with a fallback by ground type. To change a map's threats edit its `haz`.
+- Each hazard shows a warning first (flashing muzzle, red path, ring, flashing line) and does damage like a spike times a factor (bullets .55, bombs 1, birds .5, and so on), so armor perks still work. Difficulty changes how often they come (`hz` in `DIFFS`).
+- Test one quickly in the browser console while flying: `Hazards.force('fighter')`.
+
 ## What is in the box
 - `js/game.js` core loop: flat endless world, obstacles, **damage** meter, fuel
 - `js/world.js` flat scrolling ground + scenery for every map
@@ -169,7 +199,5 @@ On-screen buttons show while flying on every device: **Up / Down** (bottom right
 - Obstacle director: minimum time between waves (0.8 s, 0.95 s on touch), reachable gates that follow readable patterns, difficulty that adapts to how you play, spikes that avoid pills and fuel, homing spikes and punishment for standing still.
 - Free from the start: the 5 cheapest planes and 4 cheapest maps. Daily gift, close-call and pill-combo bonus coins, and a "next unlock" goal in the menu.
 
-## Google AdSense
-- `<meta name="google-adsense-account" content="ca-pub-7644045441600017">` is in every page, and `ads.txt` is at the site root.
-- No ad code runs yet. After AdSense approves vectofly.com: open `js/ads.js`, set `ENABLED = true` (optionally add ad-unit slot ids), redeploy. The empty `.ad-slot` boxes on the info pages then fill in; the game screen never shows ads.
-- For visitors in the EU/UK/Switzerland, turn on Google's consent message in AdSense (Privacy & messaging). The privacy and cookie pages already describe ads.
+## Monetag
+- Verify the site in Monetag (meta tag already in every page), paste the Multitag into `js/ads.js` CONFIG, redeploy.

@@ -501,6 +501,193 @@ var PB = (function(){
     return {propeller:new THREE.Object3D(), tick:tick, pilot:pilot(g, 0,-22,0,.6), tail:-40};
   };
 
+  // ======== 10 more aircraft ========
+  // flapping / swaying parts share one clock
+  function flap(list){ var t = 0; return function(){ t += .14; list.forEach(function(w){ w.o.rotation.x = Math.sin(t*(w.f||1) + (w.ph||0))*(w.a||.5)*(w.s||1); }); }; }
+
+  // Spitfire: elliptical wings, bubble canopy, roundels
+  K.spitfire = function(g, P){
+    cyl(g, 11,4,112,12, P.m(), 0,0,0,'x');
+    cyl(g, 0,9,14,10, mat(DARK), 64,0,0,'x');
+    cyl(g, 12,11,5,12, mat(STEEL), 56,0,0,'x');
+    wing(g, 38,14,130,10,3.5, P.m(), 4,-3,0, 2);
+    [38,-38].forEach(function(z){ cyl(g, 7,7,.6,16, mat(0x2a5ab8), 6,-1.1,z); cyl(g, 4.2,4.2,.7,16, mat(0xd6283b), 6,-1.05,z); cyl(g, 1.8,1.8,.8,12, mat(0xf4f4f0), 6,-1,z); });
+    wing(g, 20,9,52,8,2.5, P.m(), -48,1,0);
+    fin(g, 32,24,9,14,3, P.m(), -48,3,0);
+    sph(g, 15,8,7, glass(), 0,9,0);
+    [14,-14].forEach(function(z){ box(g, 12,6,9, mat(STEEL), 8,-9,z*1.3); strut(g, 14,-10,z*.8,10); wheel(g, 14,-16,z*.8,5,4); });
+    wheel(g, -50,-2,0,3);
+    return {propeller:propeller(g, 70, 66), pilot:pilot(g, -2,10,0,.6), tail:-56};
+  };
+
+  // Rising Sun: round cowl, red discs, spats
+  K.zero = function(g, P){
+    cyl(g, 12,5,100,12, P.m(), 0,0,0,'x');
+    cyl(g, 13.5,13.5,14,14, mat(DARK), 50,0,0,'x');
+    cyl(g, 0,7,10,10, mat(BROWN), 63,0,0,'x');
+    wing(g, 40,22,134,6,4, P.m(), 4,-5,0);
+    [34,-34].forEach(function(z){ cyl(g, 9,9,.7,16, mat(0xd6283b), 6,-2.9,z); });
+    [6.3,-6.3].forEach(function(z){ cyl(g, 6,6,.6,14, mat(0xd6283b), -22,1,z,'z'); });
+    wing(g, 18,10,50,6,2.5, P.m(), -44,1,0);
+    fin(g, 26,22,8,12,3, P.m(), -42,3,0);
+    sph(g, 16,8,7.5, glass(), -2,9,0);
+    [15,-15].forEach(function(z){ box(g, 12,14,5, P.m(), 8,-13,z); wheel(g, 8,-21,z,5,4); });
+    wheel(g, -44,-3,0,2.5);
+    return {propeller:propeller(g, 69, 68), pilot:pilot(g, -2,10,0,.6), tail:-52};
+  };
+
+  // Harrier: jump jet with swivel nozzles
+  K.harrier = function(g, P){
+    cyl(g, 4,10,98,12, P.m(), 8,0,0,'x');
+    cyl(g, 0,4,14,8, mat(DARK), 62,0,0,'x');
+    sph(g, 17,7,7, glass(), 24,8,0);
+    [12,-12].forEach(function(z){ box(g, 18,11,7, mat(DARK), 14,-1,z); });
+    wing(g, 46,14,100,22,3, P.m(), -6,-3,0,-2);
+    var fl = [];
+    [[10,15],[10,-15],[-16,15],[-16,-15]].forEach(function(n){
+      cyl(g, 4.5,4.5,10,8, mat(STEEL), n[0],-5,n[1],'z');
+      fl.push(cyl(g, 3,0,12,8, glow(0xffa030), n[0],-12,n[1]));
+    });
+    wing(g, 22,10,46,10,2.5, P.m(), -44,0,0);
+    fin(g, 28,22,8,14,3, P.m(), -40,3,0);
+    [22,-22].forEach(function(z){ strut(g, -34,-8,z*.35,8); });
+    strut(g, 24,-10,0,10); wheel(g, 24,-16,0,3.5,4); wheel(g, -34,-14,10,3,3); wheel(g, -34,-14,-10,3,3);
+    var tick = function(){ var s = .7 + Math.random()*.6; fl.forEach(function(f){ f.scale.set(1,s,1); }); };
+    return {propeller:new THREE.Object3D(), tick:tick, pilot:pilot(g, 22,9,0,.5), tail:-60};
+  };
+
+  // Sky Dragon: flapping wings, swaying tail, fire breath
+  K.dragon = function(g, P){
+    var belly = mat(0xf2d27a), horn = mat(DARK);
+    sph(g, 28,12,12, P.m(), 0,0,0,12);
+    sph(g, 26,7,10, belly, 0,-5,0,10);
+    sph(g, 13,9,9, P.m(), 32,6,0,10);
+    sph(g, 12,9,9, P.m(), 44,10,0,10);
+    box(g, 17,11,13, P.m(), 57,12,0);
+    box(g, 11,6,9, P.m(), 68,10,0);
+    [4.2,-4.2].forEach(function(z){ cyl(g, 0,2.6,13,6, horn, 52,21,z); box(g, 3,3,2, glow(0xffe14a), 62,15,z*1.5); });
+    var flame = cyl(g, 0,5,24,8, glow(0xffa030), 86,9,0,'x');
+    var tailG = new THREE.Object3D(); g.add(tailG);
+    sph(tailG, 16,8,8, P.m(), -26,0,0,10); sph(tailG, 14,6,6, P.m(), -42,-2,0,8); sph(tailG, 12,4.5,4.5, P.m(), -56,0,0,8);
+    cyl(tailG, 0,4,16,6, horn, -70,2,0,'x'); box(tailG, 5,12,2, mat(0xe86a4a), -62,7,0);
+    var wings = [];
+    [1,-1].forEach(function(s){
+      var piv = new THREE.Object3D(); piv.position.set(4,8,s*8); g.add(piv);
+      wing(piv, 34,16,72,18,2, mat(0xe86a4a,{side:THREE.DoubleSide}), -6,0,s*36);
+      box(piv, 3,2.5,74, horn, 6,1,s*37);
+      wings.push({o:piv, a:.5, s:s});
+    });
+    var fl = flap(wings), tt = 0;
+    var tick = function(){ fl(); tt += .1; tailG.rotation.y = Math.sin(tt)*.25; var k = .7 + Math.random()*.6; flame.scale.set(k,1,1); };
+    return {propeller:new THREE.Object3D(), tick:tick, pilot:pilot(g, 12,18,0,.55), tail:-72};
+  };
+
+  // Ornithopter: da Vinci style flapping wings
+  K.orni = function(g, P){
+    var wood = mat(0x8a5a2a), cloth = mat(0xf2e8c8,{side:THREE.DoubleSide});
+    box(g, 72,6,8, wood, 0,0,0);
+    box(g, 16,4,14, mat(0x59332e), -6,4,0);
+    cyl(g, 0,5,16,8, wood, 44,0,0,'x');
+    box(g, 4,12,4, wood, 14,-6,0); box(g, 4,12,4, wood, -18,-6,0);
+    var wings = [];
+    [1,-1].forEach(function(s){
+      var piv = new THREE.Object3D(); piv.position.set(0,6,s*6); g.add(piv);
+      wing(piv, 38,30,76,4,2, cloth, 0,0,s*38);
+      [-10,10].forEach(function(x){ box(piv, 2,1.8,76, wood, x,1,s*38); });
+      box(piv, 40,1.8,2, wood, 0,1,s*74);
+      wings.push({o:piv, a:.65, s:s});
+    });
+    wing(g, 24,10,44,6,2, cloth, -42,2,0); fin(g, 20,14,6,8,2, cloth, -42,2,0);
+    wheel(g, 14,-14,8,5,3); wheel(g, 14,-14,-8,5,3);
+    return {propeller:new THREE.Object3D(), tick:flap(wings), pilot:pilot(g, -6,12,0,.6), tail:-54};
+  };
+
+  // Concorde: droop-nose delta with four afterburners
+  K.concorde = function(g, P){
+    cyl(g, 3,6,120,12, P.m(), 2,0,0,'x');
+    var nose = cyl(g, 0,3.6,20,10, P.m(), 70,-3,0,'x'); nose.rotation.z += -.22;
+    box(g, 7,2,8, mat(DARK), 54,4,0);
+    wing(g, 70,10,90,38,2.5, P.m(), -16,-3,0);
+    var fl = [];
+    [13,-13,25,-25].forEach(function(z){
+      cyl(g, 4.6,4.6,30,8, mat(STEEL), -30,-8,z,'x');
+      cyl(g, 4.8,4.8,5,8, mat(DARK), -46,-8,z,'x');
+      fl.push(cyl(g, 4,0,16,8, glow(0xffa030), -56,-8,z,'x'));
+      strut(g, -26,-5,z,4);
+    });
+    fin(g, 32,32,10,20,3, P.m(), -50,3,0);
+    strut(g, 40,-6,0,10); wheel(g, 40,-12,0,3.5,4);
+    var tick = function(){ var s = .8 + Math.random()*.5; fl.forEach(function(f){ f.scale.set(s,1,1); }); };
+    return {propeller:new THREE.Object3D(), tick:tick, pilot:pilot(g, 50,5,0,.4), tail:-72};
+  };
+
+  // Jetpack pilot: superhero pose with a wingsuit
+  K.jetpack = function(g, P){
+    var skin = mat(0xf5b48a);
+    box(g, 28,11,13, P.m(), 0,0,0);
+    box(g, 24,5,5, P.m(), -24,0,3.5); box(g, 24,5,5, P.m(), -24,0,-3.5);
+    box(g, 8,6,5.5, mat(DARK), -38,0,3.5); box(g, 8,6,5.5, mat(DARK), -38,0,-3.5);
+    box(g, 20,4.5,4.5, P.m(), 22,2,8); box(g, 20,4.5,4.5, P.m(), 22,2,-8);
+    box(g, 5,5,5, skin, 33,2,8); box(g, 5,5,5, skin, 33,2,-8);
+    wing(g, 30,16,76,8,1.6, P.m({side:THREE.DoubleSide}), -8,1,0);
+    var fl = [];
+    [6,-6].forEach(function(z){
+      cyl(g, 5.5,5.5,26,10, mat(STEEL), -10,8,z,'x'); cyl(g, 6,6,4,10, mat(DARK), -24,8,z,'x');
+      fl.push(cyl(g, 5,0,26,8, glow(0xffa030), -38,8,z,'x'));
+    });
+    var tick = function(){ var s = .7 + Math.random()*.7; fl.forEach(function(f){ f.scale.set(s,1,1); }); };
+    return {propeller:new THREE.Object3D(), tick:tick, pilot:pilot(g, 16,6,0,.75), tail:-48};
+  };
+
+  // Flying Taxi: yellow cab with wings
+  K.taxi = function(g, P){
+    box(g, 74,15,34, P.m(), 0,-2,0);
+    box(g, 22,9,32, P.m(), 30,-3,0);
+    box(g, 36,13,30, P.m(), -6,11,0);
+    box(g, 33,10,31.5, glass(0xcfe8f4), -6,11,0);
+    box(g, 75,2,34.6, mat(DARK), 0,2,0);
+    box(g, 11,5,7, mat(0xffffff), -6,19.5,0);
+    [[24,17],[24,-17],[-24,17],[-24,-17]].forEach(function(w){ cyl(g, 7,7,6,12, mat(DARK), w[0],-11,w[1],'z'); cyl(g, 3.4,3.4,6.6,10, mat(0xc9ced6), w[0],-11,w[1],'z'); });
+    box(g, 2,5,6, glow(0xfff6b0), 37,0,12); box(g, 2,5,6, glow(0xfff6b0), 37,0,-12);
+    wing(g, 34,24,134,3,3, mat(0xd8d0d1), -4,24,0);
+    [[6,16],[-12,16],[6,-16],[-12,-16]].forEach(function(s){ var st = box(g, 2.5,12,2.5, mat(STEEL), s[0],20,s[1]); });
+    fin(g, 16,14,6,8,2.5, P.m(), -38,6,0);
+    return {propeller:propeller(g, 44, 58), pilot:pilot(g, -6,11,0,.55), tail:-42};
+  };
+
+  // Sky Sub: a flying submarine with a periscope
+  K.sub = function(g, P){
+    sph(g, 54,17,17, P.m(), 0,0,0,16);
+    cyl(g, 7,8,14,10, P.m(), -4,19,0);
+    box(g, 1.6,15,1.6, mat(STEEL), -4,30,0); box(g, 7,1.6,1.6, mat(STEEL), -1,37,0);
+    [16,2,-12].forEach(function(x){ [15.8,-15.8].forEach(function(z){ cyl(g, 4.6,4.6,1.4,12, mat(DARK), x,3,z,'z'); cyl(g, 3.6,3.6,1.8,12, glass(0xbfe8ff), x,3,z,'z'); }); });
+    wing(g, 26,16,96,8,2.5, P.m(), 8,-3,0);
+    wing(g, 22,12,56,6,2.5, P.m(), -36,0,0);
+    fin(g, 26,20,8,10,3, P.m(), -38,6,0);
+    fin(g, 16,16,6,8,3, P.m(), -38,-22,0).rotation.x = Math.PI;
+    cyl(g, 4,4,6,10, mat(STEEL), -55,0,0,'x');
+    return {propeller:propeller(g, -60, 40), pilot:pilot(g, -4,22,0,.5), tail:-64};
+  };
+
+  // Night Bat: bat wings that flap, glowing eyes
+  K.bat = function(g, P){
+    var wmat = P.m({side:THREE.DoubleSide});
+    sph(g, 22,10,12, P.m(), 0,0,0,12);
+    sph(g, 10,9,9, P.m(), 24,3,0,10);
+    cyl(g, 4,0,14,6, P.m(), -28,-1,0,'x');
+    [4.5,-4.5].forEach(function(z){ cyl(g, 0,3.2,13,5, P.m(), 24,13,z); box(g, 2.4,2,3, glow(0xff3a3a), 32,5,z*.8); });
+    cyl(g, 1,2.5,5,6, mat(0xf4f4f0), 33,-1,3); cyl(g, 1,2.5,5,6, mat(0xf4f4f0), 33,-1,-3);
+    var wings = [];
+    [1,-1].forEach(function(s){
+      var piv = new THREE.Object3D(); piv.position.set(0,3,s*7); g.add(piv);
+      wing(piv, 40,16,48,22,2, wmat, -4,0,s*24);
+      var tip = new THREE.Object3D(); tip.position.set(-22,0,s*48); piv.add(tip);
+      wing(tip, 24,8,46,30,1.6, wmat, -4,0,s*20);
+      wings.push({o:piv, a:.45, s:s}); wings.push({o:tip, a:.4, s:s, ph:.8});
+    });
+    return {propeller:new THREE.Object3D(), tick:flap(wings), pilot:pilot(g, 4,10,0,.5), tail:-34};
+  };
+
   function build(kind, spec, base){
     var P = new Paint(spec, base || '#f25346');
     var mesh = new THREE.Object3D(); mesh.name = 'airPlane';

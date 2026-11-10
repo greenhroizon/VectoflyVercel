@@ -18,37 +18,34 @@ var VF = (function(){
     var p = String(n || '').split(' ');
     return p.length === 3 && NAME_ADJ.indexOf(p[0]) > -1 && NAME_NOUN.indexOf(p[1]) > -1 && /^\d\d$/.test(p[2]);
   }
-  var shake = 0, lastWarn = 0, mode = 'menu', lastEarned = 0, F = {paused:false}, cg = null, muted = false, runCoins = 0, runBonus = 0, combo = 0, nearMisses = 0, newBest = false, lastBoard = 0, frameN = 0, legit = 0, playMs = 0, cheated = false, ticket = null;
+  var shake = 0, lastWarn = 0, mode = 'menu', lastEarned = 0, F = {paused:false}, muted = false, runCoins = 0, runBonus = 0, combo = 0, nearMisses = 0, newBest = false, lastBoard = 0, frameN = 0, legit = 0, playMs = 0, cheated = false, ticket = null;
 
-  // ---------- SAVE (localStorage + CrazyGames cloud data) ----------
+  // ---------- SAVE (localStorage) ----------
   function merge(o){ if (o && typeof o === 'object' && (o.games||0) >= S.games){ for (var k in S) if (o[k] !== undefined) S[k] = o[k]; } }
   function load(){
     try { merge(JSON.parse(localStorage.getItem(KEY))); } catch(e){}
     if (!S.games){ try { merge(JSON.parse(localStorage.getItem(OLD_KEY))); } catch(e){} }   // keep progress from the FlyAero days
+    sanitize();
+  }
+  // a damaged or hand-edited save can never crash the game: wrong types and unknown ids fall back to safe defaults
+  function sanitize(){
+    var num = function(k, def, min){ var v = +S[k]; S[k] = (isFinite(v) && v >= min) ? Math.floor(v) : def; };
+    num('coins', 0, 0); num('hi', 0, 0); num('gbest', 0, 0); num('dist', 0, 0); num('games', 0, 0); num('bestLevel', 1, 1); num('streak', 0, 0); num('wallet', -1, -1);
+    ['name', 'uid', 'gk', 'dayKey'].forEach(function(k){ if (typeof S[k] !== 'string') S[k] = ''; });
+    if (!Array.isArray(S.board)) S.board = [];
+    [['planes', PLANES, 'plane', 'classic'], ['skins', SKINS, 'skin', 'default'], ['maps', MAPS, 'map', 'coast']].forEach(function(t){
+      var own = Array.isArray(S[t[0]]) ? S[t[0]].filter(function(id){ return typeof id === 'string' && byId(t[1], id).id === id; }) : [];
+      if (own.indexOf(t[3]) < 0) own.unshift(t[3]);
+      S[t[0]] = own;
+      if (typeof S[t[2]] !== 'string' || byId(t[1], S[t[2]]).id !== S[t[2]] || own.indexOf(S[t[2]]) < 0) S[t[2]] = t[3];
+    });
+    if (byId(DIFFS, S.diff).id !== S.diff) S.diff = 'hard';
+    var flags = {music:true, sfx:true, vib:true, btns:true, hint:false}; for (var f in flags) if (typeof S[f] !== 'boolean') S[f] = flags[f];
   }
   function save(){
     var j = JSON.stringify(S);
     try { localStorage.setItem(KEY, j); } catch(e){}
-    try { if (cg) cg.data.setItem(KEY, j); } catch(e){}
   }
-  function sdkInit(){
-    try {
-      if (!window.CrazyGames || !CrazyGames.SDK) return;
-      CrazyGames.SDK.init().then(function(){
-        cg = CrazyGames.SDK;
-        try { var c = cg.data.getItem(KEY); if (c){ merge(JSON.parse(c)); dirty = true; drawPanel('menu'); } } catch(e){}
-      }).catch(function(){});
-    } catch(e){}
-  }
-  function withAd(done){
-    if (!cg || !cg.ad){ done(); return; }
-    var started = false, finished = false;
-    var fin = function(){ if (finished) return; finished = true; muted = false; apply(); done(); };
-    setTimeout(function(){ if (!started) fin(); }, 2500);   // safety: if no ad starts, just play
-    setTimeout(fin, 60000);                                  // safety: an ad that never reports back can never block Play
-    try { cg.ad.requestAd('midgame', {adStarted:function(){ started = true; muted = true; apply(); }, adFinished:fin, adError:fin}); } catch(e){ fin(); }
-  }
-
   // ---------- AUDIO (all generated with WebAudio, no files) ----------
   var AC, master, musicG, sfxG, engine, engineG, step = 0, nextT = 0, timer = 0;
   var ROOTS = [45,41,48,43], CH = [[57,60,64,67],[53,57,60,65],[60,64,67,72],[55,59,62,67]];
@@ -233,6 +230,11 @@ var VF = (function(){
     for (var i = 0; i < G.list.length; i++) if (G.list[i].k === myKey()) return i + 1;
     return 0;
   }
+  var wallMs = 0, lastTickAt = 0;
+  function fmtTime(ms){
+    var t = Math.max(0, Math.round(ms / 1000)), m = Math.floor(t / 60), sec = t % 60;
+    return m > 0 ? m + ' min ' + sec + ' sec' : sec + ' sec';
+  }
   function tile(label, val, cls){ var d = h('div', 'tile' + (cls ? ' ' + cls : '')); d.appendChild(h('b', '', String(val))); d.appendChild(h('span', '', label)); return d; }
   function drawStats(){
     var st = $('stats'); if (!st) return;
@@ -293,6 +295,7 @@ var VF = (function(){
   }
   function drawPanel(m){
     mode = m; document.body.classList.remove('playing');
+    if (window.VFAds) VFAds.show(m);                // ad box: menu and game-over screens only
     $('pTitle').textContent = mode==='over' ? 'Game Over' : 'VectoFly';
     $('pSub').textContent = mode==='over'
       ? (cheated ? 'Cheat detected - this run was not counted.' : (game.reason || 'Nice flight!'))
@@ -306,6 +309,7 @@ var VF = (function(){
         row.appendChild(tile('Best', S.hi.toLocaleString()));
         row.appendChild(tile('Coins', '+' + lastEarned + (runBonus ? ' (' + runBonus + ' bonus)' : '')));
         rs.appendChild(row);
+        if (wallMs > 0) rs.appendChild(h('div', 'played', 'You played ' + fmtTime(wallMs)));
       }
     }
 
@@ -326,6 +330,7 @@ var VF = (function(){
     if (starting) return;                       // double click / Enter+click / Space+click can't start twice
     if ($('shop').className !== 'hide') return; // never start from behind the hangar
     starting = true;
+    if (window.VFAds) VFAds.hide();                 // no ads while flying
     F.paused = false; muted = false;
     try { ac(); } catch(e){}
     apply();
@@ -334,14 +339,13 @@ var VF = (function(){
     var launched = false;
     var launch = function(){
       if (launched) return; launched = true; starting = false;
-      $('panel').className = 'hide'; runCoins = 0; runBonus = 0; combo = 0; nearMisses = 0; newBest = false; legit = 0; playMs = 0; cheated = false;
+      $('panel').className = 'hide'; runCoins = 0; runBonus = 0; combo = 0; nearMisses = 0; newBest = false; legit = 0; playMs = 0; wallMs = 0; lastTickAt = 0; cheated = false;
       document.body.classList.add('playing'); G.sub = '';
       if (F.touching && !S.hint){ S.hint = true; save(); setTimeout(function(){ toast('Slide a thumb anywhere to steer', '#fff6e2'); }, 600); }
       startGame(); gStart();
       try { musicStart(); if (AC && engineG) engineG.gain.setTargetAtTime(.06, AC.currentTime, .3); } catch(e){}
-      try { if (cg) cg.game.gameplayStart(); } catch(e){}
     };
-    try { withAd(launch); } catch(e){ launch(); }
+    launch();
     setTimeout(function(){ starting = false; }, 1500);   // last-resort unlock
   }
   function closeShop(){
@@ -380,6 +384,16 @@ var VF = (function(){
     {id:'stealth',n:'Stealth',p:2600,c:'#33343d',kind:'stealth',d:'Flying wing. Wide magnet, armor 30% and 25% less fuel use.',magnet:1.7,armor:.7,drain:.75},
     {id:'saucer',n:'Saucer',p:3200,c:'#8fb4c8',kind:'ufo',d:'Alien tech. Huge magnet (x2.2) and 1.5x coins.',magnet:2.2,coin:1.5},
     {id:'royal',n:'Royal Zeppelin',p:4000,c:'#7a3cff',kind:'zeppelin',d:'Legend: magnet x2, armor 40%, 30% less fuel, 30% bigger fuel cans, 2.5x coins.',magnet:2,armor:.6,drain:.7,fuelVal:1.3,coin:2.5},
+    {id:'spitfire',n:'Spitfire',p:550,c:'#6f8a5a',kind:'spitfire',d:'Elliptical wings. 15% less fuel use and magnet x1.3.',drain:.85,magnet:1.3},
+    {id:'zero',n:'Rising Sun',p:650,c:'#e8e4d8',kind:'zero',d:'Light and nimble. 20% less fuel use and 1.2x coins.',drain:.8,coin:1.2},
+    {id:'taxi',n:'Flying Taxi',p:750,c:'#f2c230',kind:'taxi',d:'Fares paid! 1.5x coins from every run.',coin:1.5},
+    {id:'sub',n:'Sky Sub',p:950,c:'#f2c230',kind:'sub',d:'Thick hull: armor 30%. Fuel cans refill 20% more.',armor:.7,fuelVal:1.2},
+    {id:'orni',n:'Ornithopter',p:1050,c:'#d8b878',kind:'orni',d:'Flapping wings. Uses 40% less fuel, magnet x1.2.',drain:.6,magnet:1.2},
+    {id:'harrier',n:'Harrier',p:1400,c:'#7a8a98',kind:'harrier',d:'Jump jet. Armor 30% and magnet x1.4.',armor:.7,magnet:1.4},
+    {id:'concorde',n:'Supersonic',p:1800,c:'#f4f6fa',kind:'concorde',d:'Delta wing. 25% less fuel use, 1.4x coins, fuel cans +20%.',drain:.75,coin:1.4,fuelVal:1.2},
+    {id:'bat',n:'Night Bat',p:2300,c:'#4a3a6a',kind:'bat',d:'Bat wings. Wide magnet (x2) and armor 15%.',magnet:2,armor:.85},
+    {id:'dragon',n:'Sky Dragon',p:3000,c:'#3aa55a',kind:'dragon',d:'Breathes fire! Armor 40%, magnet x1.6 and 1.5x coins.',armor:.6,magnet:1.6,coin:1.5},
+    {id:'jetpack',n:'Jetpack Hero',p:3600,c:'#2f5aa8',kind:'jetpack',d:'Just you and a jetpack. Magnet x2.2 and 40% less fuel use.',magnet:2.2,drain:.6},
     {id:'shuttle',n:'Space Shuttle',p:5200,c:'#e8e8ee',kind:'shuttle',d:'Mastery: armor 50%, 40% less fuel use, magnet x1.8, 2x coins.',armor:.5,drain:.6,magnet:1.8,coin:2}];
   PLANES.sort(function(a,b){ return a.p - b.p; });
   // paints: solid colour (c) or a pattern (pat) drawn with c / c2 / c3 and wrapped onto the plane
@@ -449,6 +463,18 @@ var VF = (function(){
     {id:'candy',n:'Candy Clouds',p:1300,d:'Pastel dreamland of lollipops and crystals.',sea:'#ff8fc7',g:'candy',t:['cane','crystal'],fr:['crystal','tuft'],crystal:['#ff7ad5','#7ad7ff','#ffe14a'],tuft:'#ff9fd0',farT:'mountain',far:'#e8a0e0',sun:'#fff6fb',pal:[['#ffe0f0','#d8f0ff'],['#ffc0e0','#c0d8ff'],['#b080e0','#ff90c0'],['#3a1a6a','#8a4aa8']]},
     {id:'mars',n:'Mars Colony',p:1600,d:'Red planet dust, rovers\' domes and a thin sky.',sea:'#b5532e',g:'dust',t:['rock','dome','rock'],rock:'#8a4a32',fr:['rock'],farT:'mountain',far:'#a85a3a',sun:'#ffc8a0',pal:[['#f0b48a','#d98a5a'],['#d98a5a','#a8502e'],['#5a2a2a','#a8502e'],['#1a0a0e','#4a1a1a']]},
     {id:'space',n:'Deep Space',p:2000,d:'A glowing grid under a violet nebula.',sea:'#2a2a7a',g:'grid',t:['crystal','rock'],crystal:['#7ad7ff','#b07cff','#ff7ad5'],rock:'#4a4a7a',fr:['crystal'],farT:'none',sun:null,stars:true,pal:[['#101040','#3a2a8a'],['#080828','#2a1a6a'],['#04041a','#1a1050'],['#000008','#0a0828']]},
+    // --- hazard maps: each one has its own threats (see js/hazards.js) ---
+    {id:'acealley',n:'Ace Alley',p:850,d:'Dogfight country: enemy fighters and bombers.',sea:'#2f6a9a',g:'water',t:['boat','rock','lighthouse'],fr:['rock','buoy'],farT:'mountain',far:'#7f9ac0',sun:'#fff1b8',pal:[['#cfe6f7','#f3ead0'],['#f7c9a0','#e89a7b'],['#4a5a97','#c46f8b'],['#10163a','#3a3f7a']],haz:['fighter','bomber']},
+    {id:'warzone',n:'Warzone Skies',p:420,d:'Smoky ruins. Enemy fighters shoot at you.',sea:'#5a6a4a',g:'grass',t:['deadtree','house','rock'],fr:['rock','tuft'],leaf:'#4a5a3a',tuft:'#4a5a3a',wall:'#a89c84',roofs:['#6a3a2a','#4a4a4a'],rock:'#6a6a62',fogN:110,fogF:800,farT:'mountain',far:'#6a6a62',sun:'#ffb070',pal:[['#8a7a6a','#c8946a'],['#6a5a52','#a8705a'],['#3a3236','#6a4a42'],['#14100f','#2a2022']],haz:['fighter']},
+    {id:'airraid',n:'Air Raid City',p:700,d:'Bombers sweep over a dusk city.',sea:'#5a5a64',g:'rock',t:['building'],fr:['rock'],bld:['#5a5e68','#6a6e78','#4a4e58'],lit:['#ffd27a','#ffb060'],antenna:true,farT:'skyline',far:'#5a5e70',sun:'#ffb070',pal:[['#c8a884','#e8c8a0'],['#d89a74','#b0604e'],['#4a3a58','#a05a58'],['#120c1a','#3a2a42']],haz:['bomber']},
+    {id:'meteorshower',n:'Meteor Shower',p:900,d:'Flaming rocks fall from a purple sky.',sea:'#4a3a5a',g:'dust',t:['rock','crystal'],rock:'#5a4a5a',crystal:['#ff9a5a','#ffd23a'],fr:['rock'],farT:'mountain',far:'#3a2a4a',sun:null,stars:true,pal:[['#12082a','#3a1a5a'],['#0a0420','#2a1248'],['#060214','#1a0a30'],['#000005','#0a0418']],haz:['meteor']},
+    {id:'marsh',n:'Flamingo Marsh',p:260,d:'Flocks of birds cross the wetlands.',sea:'#5ac8b8',g:'water',t:['palm','tree','bush','rock'],fr:['rock','buoy'],leaf:'#3cb06a',farT:'mountain',far:'#7ab8b0',sun:'#fff6c8',pal:[['#d6f6ee','#fff3d0'],['#ffd9b0','#ff9f8a'],['#5a6aa8','#d98cb0'],['#10234a','#2c5a8a']],haz:['bird']},
+    {id:'thunder',n:'Thunder Plains',p:560,d:'Lightning strikes the open fields. Watch the rings!',sea:'#5a7a4a',g:'grass',t:['windmill','tree','rock'],fr:['tuft','rock'],leaf:'#4a7a3a',tuft:'#4a6a3a',wall:'#e8e0d0',roofs:['#8a3a2a','#4a5a8a'],cloud:'#7a8494',fogN:120,fogF:820,farT:'mountain',far:'#5a6a7a',sun:null,pal:[['#8a94a4','#aab4bc'],['#6a7484','#8a949c'],['#3a4252','#4a5462'],['#10141c','#2a303a']],haz:['lightning']},
+    {id:'canyonrun',n:'Canyon Run',p:1000,d:'Winds howl through the canyon. Fighters lurk.',sea:'#d08a5a',g:'sand',t:['mesa','mesa','cactus','rock'],fr:['rock','tuft'],tuft:'#9a6a3a',rock:'#9a5a3a',farT:'dune',far:'#d8a070',sun:'#fff0c0',pal:[['#ffd9a0','#f7b070'],['#ff9a6a','#c4503a'],['#5a3a6a','#c4503a'],['#1a1030','#4a2a4a']],haz:['gust','fighter']},
+    {id:'icespires',n:'Frozen Spires',p:1150,d:'Icicles shake loose and drop as you pass.',sea:'#cfe8f8',g:'snow',t:['ice','ice','pine','rock'],fr:['rock','tuft'],leaf:'#2e6a55',snowy:true,snow:true,farT:'mountain',far:'#a8c4e0',sun:'#ffffff',pal:[['#d4eafa','#e8f4fc'],['#bcd8f0','#e0d4ec'],['#5a74b0','#a0b4e0'],['#0e1a3c','#34508a']],haz:['icicle']},
+    {id:'laserlab',n:'Laser Lab',p:1300,d:'Neon laser grids sweep the sky.',sea:'#103a4a',g:'grid',t:['building','crystal'],fr:['crystal'],bld:['#0e2a3a','#12384a','#0a2230'],lit:['#ff4fd8','#35f0ff'],crystal:['#35f0ff','#ff4fd8'],antenna:true,farT:'skyline',far:'#12384a',sun:'#35f0ff',stars:true,pal:[['#06182a','#12506a'],['#04101e','#0a3a52'],['#020a14','#082a3c'],['#000308','#041420']],haz:['laser']},
+    {id:'dragonpeak',n:"Dragon's Peak",p:1750,d:'A castle on a crag. The dragon spits fireballs.',sea:'#6a5a78',g:'rock',t:['castle','rock','pine','rock'],fr:['rock','tuft'],stone:'#8a8498',wall:'#cfc6b8',roofs:['#7a3a5a','#4a3a7a'],leaf:'#2e5a4f',tuft:'#4a5a6a',farT:'mountain',far:'#6a5a88',sun:'#ffb080',pal:[['#8a6aa8','#e8a89a'],['#6a4a88','#c4708a'],['#2e2250','#7a4a78'],['#0a0618','#2a1a40']],haz:['fireball']},
+    {id:'alien',n:'Alien Skies',p:2200,d:'Saucers hover and fire plasma at you.',sea:'#2a5a4a',g:'dust',t:['crystal','dome','rock'],fr:['crystal','rock'],crystal:['#7dff6a','#4ff0ff','#ff4fd8'],rock:'#2a4a3a',farT:'mountain',far:'#2a5a5a',sun:null,stars:true,pal:[['#0a2a2a','#1a5a4a'],['#061a1e','#0e4a3e'],['#03101a','#0a3030'],['#000608','#041a1a']],haz:['ufo']},
     // --- new maps ---
     {id:'canyon',free:1,n:'Red Canyon',p:200,d:'Sandstone mesas and cacti at sunrise.',sea:'#c2623a',g:'sand',t:['mesa','cactus','rock'],fr:['rock','tuft'],tuft:'#9a6a3a',rock:'#9a5a3a',farT:'mountain',far:'#b4583a',sun:'#fff0c0',pal:[['#ffd9a0','#f7b070'],['#ff9a6a','#c4503a'],['#5a3a6a','#c4503a'],['#1a1030','#4a2a4a']]},
     {id:'autumn',n:'Autumn Valley',p:300,d:'Orange maples and rolling fields.',sea:'#c98a2f',g:'grass',t:['tree','tree','bush','rock'],fr:['tuft','bush'],leaf:'#e0702a',tuft:'#b07a2a',farT:'mountain',far:'#a8805a',sun:'#fff0c8',pal:[['#ffe6b0','#f5c080'],['#f7b070','#d97a4a'],['#5a4a7a','#d97a4a'],['#1a1838','#4a3a5a']]},
@@ -476,14 +502,29 @@ var VF = (function(){
     {id:'moonsea',n:'Moonlit Sea',p:1650,d:'Always night: a silver moon over black water.',sea:'#1a3a6a',g:'water',t:['boat','rock','buoy'],fr:['rock','buoy'],farT:'mountain',far:'#1a2a4a',sun:'#f4f6ff',stars:true,pal:[['#050a24','#1a2f5a'],['#040820','#162a52'],['#030618','#10224a'],['#02040f','#0a1838']]},
     {id:'moon',n:'Moon Base',p:2400,d:'Grey regolith, craters and the Earth above.',sea:'#8d8f98',g:'dust',t:['rock','rock','dome'],rock:'#6d6f78',fr:['rock'],farT:'mountain',far:'#6a6c78',sun:null,stars:true,earth:true,pal:[['#000005','#0a0a18'],['#000005','#0a0a18'],['#000003','#06060f'],['#000000','#030308']]}];
   MAPS.sort(function(a,b){ return a.p - b.p; });
+  // ---- hazards: the special threats each map has (see js/hazards.js) ----
+  var HAZ_OF = {coast:['bird'],bay:['bird'],tropical:['bird'],lighthouse:['bird','lightning'],greece:['bird'],shrine:['bird'],sakura:['bird'],forest:['bird','gust'],
+    tulips:['bird','gust'],rice:['bird'],bamboo:['gust'],lavender:['bird','gust'],autumn:['gust','bird'],savanna:['bird'],jungle:['bird'],candy:['bird','gust'],
+    storm:['lightning'],swamp:['lightning','bird'],halloween:['bird','lightning'],mist:['gust'],desert:['gust'],canyon:['gust','bird'],egypt:['gust','bomber'],salt:['gust'],
+    arctic:['icicle'],winter:['icicle'],xmas:['icicle','gust'],glacier:['icicle'],aurora:['icicle','gust'],volcano:['fireball'],blackbeach:['fireball','bird'],
+    space:['meteor','ufo'],mars:['meteor','ufo'],moon:['meteor'],moonsea:['ufo'],neon:['laser'],cyber:['laser','ufo'],metro:['bomber','fighter'],kingdom:['bird','fighter']};
+  var HAZ_BY_GROUND = {water:['bird'],sand:['gust'],snow:['icicle'],lava:['fireball'],grid:['laser'],dust:['meteor'],grass:['bird','gust'],rock:['bomber'],candy:['bird']};
+  var HZN = {bird:'Birds',fighter:'Enemy fighters',ufo:'Alien saucers',bomber:'Bombers',meteor:'Meteors',lightning:'Lightning',laser:'Lasers',fireball:'Fireballs',icicle:'Icicles',gust:'Wind gusts'};
+  MAPS.forEach(function(m){ if (!m.haz) m.haz = HAZ_OF[m.id] || HAZ_BY_GROUND[m.g] || ['bird']; });
+  F.hazards = function(){ return curMap().haz || []; };
+  F.hazMul = function(){ return diff().hz || 1; };
+  F.birdColor = function(){ return curMap().id === 'halloween' ? 0x3a2a4a : 0xf2f2f2; };
+  F.toast = function(t, c){ toast(t, c); };
+  F.sfx = function(k){ sfx(k); };
+  F.shake = function(n){ shake = Math.max(shake, n); };
   SKINS.sort(function(a,b){ return (a.id==='default'?-1:b.id==='default'?1:a.p-b.p); });
   // difficulty: e = damage per spike, c = damage a pill repairs, tol = spike hit size, v0/vmax/vper = speed start / top / ramp,
   // sp = [first gap, smallest gap, shrink per level], wave = spikes per wave at level 1, fuel = fuel burn, mult = score & coin reward multiplier
   var DIFFS = [
-    {id:'easy',n:'Easy',e:10,c:3,tol:10,v0:.00035,vmax:.0008,vper:.00000008,sp:[62,40,2],wave:1,fuel:.06,mult:1},
-    {id:'medium',n:'Medium',e:15,c:3,tol:10,v0:.0004,vmax:.00095,vper:.0000001,sp:[55,36,2.2],wave:1,fuel:.068,mult:1.25},
-    {id:'hard',n:'Hard',e:20,c:2,tol:11,v0:.00044,vmax:.0011,vper:.00000012,sp:[48,30,2.5],wave:2,fuel:.075,mult:1.5},
-    {id:'hell',n:'Hell',e:25,c:1.5,tol:12,v0:.00055,vmax:.0015,vper:.0000002,sp:[40,24,2.5],wave:3,fuel:.09,mult:2}];
+    {id:'easy',n:'Easy',e:10,c:3,tol:10,v0:.00035,vmax:.0008,vper:.00000008,sp:[62,40,2],wave:1,fuel:.06,mult:1,hz:1.4},
+    {id:'medium',n:'Medium',e:15,c:3,tol:10,v0:.0004,vmax:.00095,vper:.0000001,sp:[55,36,2.2],wave:1,fuel:.068,mult:1.25,hz:1.15},
+    {id:'hard',n:'Hard',e:20,c:2,tol:11,v0:.00044,vmax:.0011,vper:.00000012,sp:[48,30,2.5],wave:2,fuel:.075,mult:1.5,hz:1},
+    {id:'hell',n:'Hell',e:25,c:1.5,tol:12,v0:.00055,vmax:.0015,vper:.0000002,sp:[40,24,2.5],wave:3,fuel:.09,mult:2,hz:.8}];
   function diff(){ return byId(DIFFS, S.diff); }
   var tab = 'planes', dirty = true;
   function byId(a,id){ for (var i=0;i<a.length;i++) if (a[i].id===id) return a[i]; return a[0]; }
@@ -518,7 +559,7 @@ var VF = (function(){
     if (PV) return PV.ok;
     PV = {ok:false};
     try {
-      var r = new THREE.WebGLRenderer({alpha:true, antialias:true, preserveDrawingBuffer:true});
+      var r = new THREE.WebGLRenderer({alpha:true, antialias:!isMobile, preserveDrawingBuffer:true});
       r.setSize(220,132); r.setClearColor(0x000000, 0);
       var s = new THREE.Scene(); s.add(new THREE.HemisphereLight(0xe8f0ff,0x8a7058,.95));
       var dl = new THREE.DirectionalLight(0xfff2dc,.95); dl.position.set(90,170,140); s.add(dl);
@@ -584,6 +625,7 @@ var VF = (function(){
         }
       }
       c.appendChild(sw); c.appendChild(h('b','',it.n)); if (it.d) c.appendChild(h('div','d',it.d));
+      if (tab==='maps' && it.haz) c.appendChild(h('div','haz','Threats: ' + it.haz.map(function(k){ return HZN[k] || k; }).join(', ')));
       var owned = it.free || S[ownKey].indexOf(it.id) > -1, b;
       if (it.free && !(S[ownKey].indexOf(it.id) > -1)){ c.appendChild(h('span','freeTag','FREE')); }
       if (owned){
@@ -603,6 +645,7 @@ var VF = (function(){
   F.tick = function(dd, dt){
     if (cheated) return;
     legit += dd; playMs += dt;
+    var nowT = Date.now(); if (lastTickAt) wallMs += Math.min(nowT - lastTickAt, 500); lastTickAt = nowT;   // real time played (the game's own clock stops below 20 fps)
     if (Math.abs(game.distance - legit) > 2) F.cheat('distance');
     else if (dd > dt * .14 || game.baseSpeed > game.maxBaseSpeed * 1.05) F.cheat('speed');
   };
@@ -623,7 +666,7 @@ var VF = (function(){
   F.onLevel = function(l){ sfx('level'); toast('LEVEL ' + l,'#68c3c0'); };
   F.onGameOver = function(){
     var sc = F.score(); sfx('over'); buzz([70,40,120]);
-    if (cheated){ lastEarned = 0; newBest = false; if (engineG) engineG.gain.setTargetAtTime(0, AC.currentTime, .2); save(); try { if (cg) cg.game.gameplayStop(); } catch(e){} return; }
+    if (cheated){ lastEarned = 0; newBest = false; if (engineG) engineG.gain.setTargetAtTime(0, AC.currentTime, .2); save(); return; }
     lastEarned = Math.floor((runCoins*(plane().coin||1) + sc/200) * diff().mult) + runBonus; S.wallet += lastEarned;
     if (engineG) engineG.gain.setTargetAtTime(0, AC.currentTime, .2);
     S.games++; S.coins += runCoins; S.dist += Math.floor(game.distance); S.bestLevel = Math.max(S.bestLevel, game.level);
@@ -631,7 +674,7 @@ var VF = (function(){
     if (sc > 0){ S.board.push({n:S.name||'Pilot', s:sc, d:Date.now()}); S.board.sort(function(a,b){ return b.s-a.s; }); S.board = S.board.slice(0,20); }
     save();
     gSubmit(sc, Math.floor(legit), game.level, runCoins);
-    try { if (cg) cg.game.gameplayStop(); } catch(e){}
+   
   };
   F.showGameOver = function(){ drawPanel('over'); };
 
@@ -640,6 +683,8 @@ var VF = (function(){
   var cur = MAPS[0].pal[0].map(rgb), bright = 1;
   var STAGE_LIGHT = [1, .92, .68, .42], STAGE_SUN = [210, 120, 36, 200];
   F.onFrame = function(){
+    var pbar = $('pauseBar'); if (pbar && !pbar.hidden) pbar.hidden = true;   // a frame is being drawn, so the game is running
+    if (!F.booted){ F.booted = true; var bt = $('boot'); if (bt){ bt.className = 'gone'; setTimeout(function(){ if (bt.parentNode) bt.parentNode.removeChild(bt); }, 500); } }
     frameN++; var tn = Date.now(); if (tn - fpsT >= 1000){ F.fps = Math.round(fpsN*1000/(tn - fpsT)); fpsT = tn; fpsN = 0; } fpsN++;
     if (dirty && applyLook()) dirty = false;
     var L = (typeof game !== 'undefined') ? game.level : 1, mp = curMap(), st = Math.floor((L-1)/3)%4, tg = mp.pal[st].map(rgb);
@@ -683,16 +728,16 @@ var VF = (function(){
   };
   F.touching = false;
   function setPause(p){
+    lastTickAt = 0;
     F.paused = p && game.status === 'playing';   // menus and shops are never paused
     muted = p; apply();
     if (AC){ if (p) AC.suspend(); else AC.resume(); }
-    try { if (cg && game.status==='playing') p ? cg.game.gameplayStop() : cg.game.gameplayStart(); } catch(e){}
-    if (F.paused) toast('PAUSED - tap to resume','#fff6e2');
+    var pb = $('pauseBar'); if (pb) pb.hidden = !F.paused;
   }
   function init(){
     load(); if (S.wallet < 0) S.wallet = S.coins;
     if (!okName(S.name)){ S.name = genName(); save(); }   // old typed names are replaced by a random pilot name
-    $('rerollName').onclick = function(){ var n; do { n = genName(); } while (n === S.name); S.name = n; save(); $('pilotName').textContent = n; }; drawPanel('menu'); sdkInit(); gVisit(); dailyGift(); drawPanel('menu');
+    $('rerollName').onclick = function(){ var n; do { n = genName(); } while (n === S.name); S.name = n; save(); $('pilotName').textContent = n; }; drawPanel('menu'); gVisit(); dailyGift(); drawPanel('menu');
     // keep the world board fresh on every device: poll while the page is visible, refresh the moment you come back
     function menuRefresh(){ if (!document.hidden && !document.body.classList.contains('playing')) gFetch(true); }
     setInterval(menuRefresh, 30000);
@@ -706,6 +751,7 @@ var VF = (function(){
     $('optMusic').onchange = function(){ S.music = this.checked; apply(); save(); };
     $('optSfx').onchange = function(){ S.sfx = this.checked; apply(); save(); };
     $('optVib').onchange = function(){ S.vib = this.checked; save(); if (S.vib) buzz(30); };
+    if ($('optLow')){ $('optLow').checked = !!Q.forced; $('optLow').onchange = function(){ qForce(this.checked); }; }
     if (!navigator.vibrate) $('vibLbl').style.display = 'none';
     $('soundBtn').onclick = function(){ var on = !(S.music||S.sfx); S.music = S.sfx = on; apply(); save(); $('optMusic').checked = $('optSfx').checked = on; };
     document.addEventListener('keydown', function(e){
@@ -729,7 +775,8 @@ var VF = (function(){
     window.addEventListener('focus', function(){ if (!document.hidden && !F.paused) setPause(false); });  // a paused game waits for a tap
     document.addEventListener('mousedown', function(e){ if (F.paused && e.target.tagName==='CANVAS') setPause(false); });
     document.addEventListener('touchstart', function(e){ if (F.paused && e.target.tagName==='CANVAS') setPause(false); }, false);
+    document.addEventListener('mousedown', function(e){ if (F.paused && e.target.tagName==='CANVAS') setPause(false); }, false);
   }
-  window.addEventListener('load', init, false);
+  if (document.readyState === 'complete') init(); else document.addEventListener('DOMContentLoaded', init, false);
   return F;
 })();

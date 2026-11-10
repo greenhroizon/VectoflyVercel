@@ -1,1 +1,1 @@
-google.com, pub-7644045441600017, DIRECT, f08c47fec0942fa0
+# If Monetag shows an ads.txt line for your site (Sites > vectofly.com), paste it here. If it does not, delete this file's contents.

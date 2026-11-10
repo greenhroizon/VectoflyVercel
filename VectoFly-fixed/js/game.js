@@ -75,7 +75,7 @@ function resetGame(){
           fuel:100, fuelBase:.075, fuelPerLevel:.004, fuelEff:1, fuelValue:40, fuelLastSpawn:0, distanceForFuelSpawn:450,
           maxBaseSpeed:.0011,
           speedPerMeter:.00000012,
-          crashT:0,
+          crashT:0, windY:0,
 
           status : "playing"
          };
@@ -130,11 +130,12 @@ function createScene() {
 
   try { renderer = new THREE.WebGLRenderer({ alpha: true, antialias: !isMobile }); }
   catch(e){ document.body.innerHTML='<p style="padding:24px;font-family:sans-serif">Sorry, WebGL is not supported on this device or browser.</p>'; throw e; }
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio||1, isMobile?1.5:2));
+  basePR = Math.min(window.devicePixelRatio||1, isMobile ? 1.25 : 2);
+  renderer.setPixelRatio(basePR);
   renderer.setSize(WIDTH, HEIGHT);
 
   renderer.shadowMap.enabled = true;
-  renderer.shadowMap.type = THREE.PCFSoftShadowMap;   // soft shadow edges
+  renderer.shadowMap.type = isMobile ? THREE.PCFShadowMap : THREE.PCFSoftShadowMap;   // soft shadow edges on desktop, cheaper ones on phones
 
   container = document.getElementById('world');
   container.appendChild(renderer.domElement);
@@ -776,11 +777,51 @@ function createParticles(){
   scene.add(particlesHolder.mesh)
 }
 
+
+// ---------- GRAPHICS QUALITY: starts to suit the device and steps down by itself if the game runs slowly ----------
+// 0 = shadows + full sharpness, 1 = no shadows, 2 = also lower resolution, 3 = lowest resolution.
+// The level is remembered, so a slow phone starts smooth the next time. "Low graphics" in the menu forces level 2.
+var basePR = 1, Q = {level:0, forced:(function(){ try { return localStorage.getItem('vf_qf') === '1'; } catch(e){ return false; } })(), acc:0, n:0, cool:0};
+function qStored(){ try { var v = localStorage.getItem('vf_q'); return v === null ? null : parseInt(v, 10); } catch(e){ return null; } }
+function qSave(v){ try { if (v === null) localStorage.removeItem('vf_q'); else localStorage.setItem('vf_q', String(v)); } catch(e){} }
+function qInitial(){
+  var s = qStored(); if (s !== null && !isNaN(s)) return Math.max(0, Math.min(3, s));
+  var mem = navigator.deviceMemory || 4, cores = navigator.hardwareConcurrency || 4;
+  return (isMobile && (mem <= 2 || cores <= 4 && mem <= 3)) ? 1 : 0;
+}
+function applyQuality(l){
+  Q.level = l;
+  var shadows = (l === 0);
+  if (renderer.shadowMap.enabled !== shadows){
+    renderer.shadowMap.enabled = shadows; shadowLight.castShadow = shadows;
+    scene.traverse(function(o){ if (o.material){ if (o.material.length) o.material.forEach(function(m){ m.needsUpdate = true; }); else o.material.needsUpdate = true; } });
+  }
+  var pr = l <= 1 ? basePR : l === 2 ? Math.min(basePR, 1) : Math.min(basePR, .75);
+  if (renderer.getPixelRatio() !== pr){ renderer.setPixelRatio(pr); handleWindowResize(); }
+}
+function qForce(on){
+  Q.forced = !!on; Q.acc = 0; Q.n = 0; Q.cool = 0;
+  try { if (on) localStorage.setItem('vf_qf', '1'); else localStorage.removeItem('vf_qf'); } catch(e){}
+  if (on){ qSave(2); applyQuality(Math.max(Q.level, 2)); } else { qSave(null); applyQuality(qInitial()); }
+}
+// called every frame while flying with the real frame time: if the average stays slow, drop one level
+function qWatch(raw){
+  if (Q.forced || Q.level >= 3 || raw > 400) return;      // ignore the long pauses (tab switch, shader compile)
+  if (Q.cool > 0){ Q.cool -= raw; return; }
+  Q.acc += raw; Q.n++;
+  if (Q.n >= 75){
+    var avg = Q.acc/Q.n; Q.acc = 0; Q.n = 0;
+    if (avg > 31){ applyQuality(Q.level + 1); qSave(Q.level); Q.cool = 3000; }
+  }
+}
+
 function loop(){
 
   newTime = new Date().getTime();
   if (VF.paused){ oldTime=newTime; requestAnimationFrame(loop); return; }
-  deltaTime = Math.min(newTime-oldTime,50);
+  var rawDt = newTime - oldTime;
+  deltaTime = Math.min(rawDt,50);
+  if (game.status=="playing") qWatch(rawDt);
   oldTime = newTime;
 
   if (game.status=="playing"){
@@ -841,6 +882,7 @@ function loop(){
   coinsHolder.rotateCoins();
   fuelHolder.rotate();
   ennemiesHolder.rotateEnnemies();
+  Hazards.update(deltaTime);
   updateWarn();
 
   if (game.status=="playing") emitPlaneEffects();
@@ -899,7 +941,7 @@ function cameraFov(){
 function updatePlane(){
 
   game.planeSpeed = normalize(mousePos.x,-.5,.5,game.planeMinSpeed, game.planeMaxSpeed);
-  var targetY = normalize(mousePos.y,-.75,.75,game.planeDefaultHeight-game.planeAmpHeight, game.planeDefaultHeight+game.planeAmpHeight);
+  var targetY = normalize(mousePos.y,-.75,.75,game.planeDefaultHeight-game.planeAmpHeight, game.planeDefaultHeight+game.planeAmpHeight) + (game.windY || 0);   // wind gusts push the plane
   var targetX = normalize(mousePos.x,-1,1,-game.planeAmpWidth*.7*XS, -game.planeAmpWidth*XS);
 
   game.planeCollisionDisplacementX += game.planeCollisionSpeedX;
@@ -958,7 +1000,7 @@ function startGame(){
   while(ennemiesHolder.ennemiesInUse.length){ var e=ennemiesHolder.ennemiesInUse.pop(); ennemiesHolder.mesh.remove(e.mesh); ennemiesPool.push(e); }
   while(fuelHolder.inUse.length){ var u=fuelHolder.inUse.pop(); fuelHolder.mesh.remove(u.mesh); fuelHolder.pool.push(u); }
   while(coinsHolder.coinsInUse.length){ var c=coinsHolder.coinsInUse.pop(); coinsHolder.mesh.remove(c.mesh); coinsHolder.coinsPool.push(c); }
-  clearPuffs();
+  clearPuffs(); Hazards.reset();
   damageBar.style.right = "100%"; damageBar.style.animationName = "none";
 }
 
@@ -1004,6 +1046,8 @@ function init(event){
   createParticles();
   createFuel();
   createPuffs();
+  Hazards.init();
+  applyQuality(qInitial());
 
   document.addEventListener('mousemove', handleMouseMove, false);
   document.addEventListener('touchstart', handleTouchStart, {passive:true});
@@ -1015,4 +1059,5 @@ function init(event){
   loop();
 }
 
-window.addEventListener('load', init, false);
+// start as soon as our own scripts are ready (not when every third-party script has finished: that made slow connections look frozen)
+if (document.readyState === 'complete') init(); else document.addEventListener('DOMContentLoaded', init, false);
