@@ -49,10 +49,8 @@ If neither is set up (or the server cannot be reached) the game falls back to th
 - Icons: `favicon.ico`, `img/favicon-32.png`, `img/icon-192.png`, `img/icon-512.png`, `img/icon-maskable-512.png`, `img/apple-touch-icon.png` (links use `?v=2` to bypass the 1 year cache; bump it when you change them).
 - If you change the privacy or terms text, update the "Last updated" dates and `sitemap.xml` lastmod.
 
-## Ads (Adsterra banners + Monetag push)
-`js/ads.js` has the Adsterra banner keys (300x250, 468x60, 160x600, 320x50, 728x90, 160x300) and the Monetag push zone. No pop-unders, no redirects. Game page: on screens 1100px+ wide and 420px+ tall, 160px rails left/right of the game (160x600, or 160x300 under 700px tall); otherwise a strip under the game and, on 500px+ tall screens, one above it (468x60 from 560px wide, else 320x50). The game area shrinks through the CSS variables `--vf-l/--vf-r/--vf-b` on `#gameHolder`, so ads never overlap it. The menu/game-over screen has a small banner right under the Play button and a 300x250 box lower down. Ads renew only on the game-over of every 2nd run. Info pages: top/mid/bottom banners + side rails on wide screens. Push is asked once after the first run (info pages: after 12 s), at most every 12 h.
-- Push needs `sw.js` (from the Monetag dashboard) in the site root.
-- Do not refresh ads on a timer, reward clicks, or put ads next to buttons.
+## Ads
+The site currently shows no ads and loads no ad scripts. `ads.txt` holds only comments; after AdSense approval, paste the `google.com, pub-..., DIRECT, f08c47fec0942fa0` line there and update the privacy and cookie pages.
 
 ## Updates page
 `updates.html` is the public changelog (newest first, one `<section class="rel">` per version with a date). When you ship a change, add a new section at the top, update the `jump` links, set `lastmod` for `updates.html` in `sitemap.xml`, and change the "Last updated" date on any legal page whose text you changed.
@@ -198,5 +196,5 @@ On-screen buttons show while flying on every device: **Up / Down** (bottom right
 - Obstacle director: minimum time between waves (0.8 s, 0.95 s on touch), reachable gates that follow readable patterns, difficulty that adapts to how you play, spikes that avoid pills and fuel, homing spikes and punishment for standing still.
 - Free from the start: the 5 cheapest planes and 4 cheapest maps. Daily gift, close-call and pill-combo bonus coins, and a "next unlock" goal in the menu.
 
-## Monetag
-- Verify the site in Monetag (meta tag already in every page), paste the Multitag into `js/ads.js` CONFIG, redeploy.
+## Content pages
+`planes.html`, `maps.html` (generated from the data in `js/vectofly.js`), `guides.html`, seven guide articles and `faq.html`. If you add a plane or map, update the catalog tables and counts.

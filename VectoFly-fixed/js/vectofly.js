@@ -295,7 +295,6 @@ var VF = (function(){
   }
   function drawPanel(m){
     mode = m; document.body.classList.remove('playing');
-    if (window.VFAds) VFAds.show(m);                // ad box: menu and game-over screens only
     $('pTitle').textContent = mode==='over' ? 'Game Over' : 'VectoFly';
     $('pSub').textContent = mode==='over'
       ? (cheated ? 'Cheat detected - this run was not counted.' : (game.reason || 'Nice flight!'))
@@ -330,7 +329,6 @@ var VF = (function(){
     if (starting) return;                       // double click / Enter+click / Space+click can't start twice
     if ($('shop').className !== 'hide') return; // never start from behind the hangar
     starting = true;
-    if (window.VFAds) VFAds.hide();                 // no ads while flying
     F.paused = false; muted = false;
     try { ac(); } catch(e){}
     apply();

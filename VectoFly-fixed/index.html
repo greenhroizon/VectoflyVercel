@@ -2,7 +2,6 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="monetag" content="05f8462a7b2161521ddd6ca0b7879aa5">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>VectoFly - Free Endless 3D Plane Game | Play Online</title>
 <meta name="description" content="Play VectoFly free online: an endless 3D plane game. Pick your plane, dodge the obstacles and climb the global leaderboard. No download needed.">
@@ -56,7 +55,7 @@
 <link rel="preload" href="js/three.min.js" as="script">
 
 <link rel="stylesheet" href="css/game.css?v=9">
-<link rel="stylesheet" href="css/vectofly.css?v=25">
+<link rel="stylesheet" href="css/vectofly.css?v=26">
 <link rel="stylesheet" href="css/seo.css?v=9">
 
 <!-- Structured data (JSON-LD) -->
@@ -71,7 +70,7 @@
 <script defer src="js/world.js?v=9"></script>
 <script defer src="js/planes.js?v=17"></script>
 <script defer src="js/hazards.js?v=17"></script>
-<script defer src="js/vectofly.js?v=22"></script>
+<script defer src="js/vectofly.js?v=23"></script>
 <script defer src="js/game.js?v=18"></script>
 <!-- Google tag (gtag.js) -->
 <script>try{if(localStorage.getItem('vf_ga_off')==='1')window['ga-disable-G-LXSLC7ZVNW']=true;}catch(e){}</script>
@@ -146,7 +145,6 @@
         <div id="stats"></div></section>
         <div id="diffRow"></div><div id="diffNote"></div>
         <button id="playBtn">Play</button>
-        <div id="adPlay" class="ad-slot" hidden aria-label="Advertisement"></div>
         <div class="row2"><button id="hangarBtn">Hangar</button><button id="mapsBtn">Maps</button></div>
         <div id="wallet"></div><div id="goal"></div>
       </div>
@@ -162,13 +160,10 @@
       </div>
       <div class="mf">
         <div id="visitors" title="Pilots who visited and total games played"></div>
-        <a class="sp" data-sponsored hidden href="#">&#9733; Sponsored offers</a>
         <a class="fb" href="mailto:contact@vectofly.com?subject=VectoFly%20bug%20report%20or%20feedback" data-feedback>&#9993; Report a bug / send feedback</a>
         <div class="legal"><a href="how-to-play.html" target="_blank">How to play</a> &middot; <a href="leaderboard.html" target="_blank">Leaderboard</a> &middot; <a href="about.html" target="_blank">About</a> &middot; <a href="updates.html" target="_blank">Updates</a> &middot; <a href="contact.html" target="_blank">Contact</a> &middot; <a href="privacy.html" target="_blank">Privacy</a> &middot; <a href="terms.html" target="_blank">Terms</a> &middot; <a href="cookie-policy.html" target="_blank">Cookies</a> &middot; <a href="disclaimer.html" target="_blank">Disclaimer</a> &middot; <a href="dmca.html" target="_blank">DMCA</a></div>
         <div class="credit">Based on "The Aviator" by Karim Maaloul (Codrops)</div>
       </div>
-      <div id="adMenu" class="ad-slot" hidden aria-label="Advertisement"></div>
-      <div id="adMenu2" class="ad-slot" hidden aria-label="Advertisement"></div>
     </div>
   </div>
   <div id="shop" class="hide"><div class="box"><h2>Hangar</h2><div id="wallet2"></div><div id="shopTabs"></div><div id="grid"></div><button id="backBtn">Back</button></div></div>
@@ -191,6 +186,15 @@
       <li>Clean game screen: no scoreboard while you fly, with your rank, best score and results shown in the menu</li>
       <li>Works worldwide on desktop, tablet and mobile browsers, no download</li>
     </ul>
+    <h2>Free to play, with no sign-up</h2>
+    <p>VectoFly is a free website game. You do not need an account, a download or a payment: open the page, press Play and fly. Everything in the game can be unlocked with coins earned by flying, and there are no real-money purchases. Your progress is saved in your browser on your own device.</p>
+    <h2>Learn more and fly farther</h2>
+    <ul>
+      <li><a href="how-to-play.html">How to play</a>: controls, scoring and the basics</li>
+      <li><a href="guides.html">Guides</a>: beginner tips, hazards, coins, difficulty, controls and high-score strategy</li>
+      <li><a href="planes.html">All 32 planes</a> and <a href="maps.html">all 50 maps</a> with prices and perks</li>
+      <li><a href="faq.html">FAQ</a>, the <a href="leaderboard.html">world leaderboard</a> and the <a href="updates.html">updates</a> page</li>
+    </ul>
     <h2>Frequently asked questions</h2>
     <h3>What is VectoFly?</h3>
     <p>VectoFly is a free endless 3D plane game that runs in your browser. You fly over an endless world, dodge the obstacles ahead and try to reach the top of the global leaderboard.</p>
@@ -212,7 +216,6 @@
   </article>
 </main>
 <noscript><p style="position:fixed;top:40%;width:100%;text-align:center;font:18px sans-serif">VectoFly needs JavaScript and WebGL. Please enable JavaScript to play.</p></noscript>
-<script src="js/site.js?v=10" defer></script>
-<script src="js/ads.js?v=16" defer></script>
+<script src="js/site.js?v=20" defer></script>
 </body>
 </html>

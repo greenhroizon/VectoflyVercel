@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>VectoFly Difficulty Levels and Scoring Explained</title>
+<meta name="description" content="How VectoFly scoring works and how Easy, Medium, Hard and Hell differ: multipliers, speed, spike gaps, wave size, fuel use and hazard frequency.">
+<meta name="robots" content="index, follow, max-image-preview:large">
+<link rel="canonical" href="https://vectofly.com/guide-difficulty-and-scoring.html">
+<meta name="theme-color" content="#f7d9aa">
+<link rel="icon" href="favicon.ico?v=2" sizes="any">
+<link rel="icon" type="image/png" sizes="192x192" href="img/icon-192.png?v=2">
+<link rel="apple-touch-icon" href="img/apple-touch-icon.png?v=2">
+<link rel="manifest" href="site.webmanifest">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="VectoFly">
+<meta property="og:title" content="VectoFly Difficulty Levels and Scoring Explained">
+<meta property="og:description" content="How VectoFly scoring works and how Easy, Medium, Hard and Hell differ: multipliers, speed, spike gaps, wave size, fuel use and hazard frequency.">
+<meta property="og:url" content="https://vectofly.com/guide-difficulty-and-scoring.html">
+<meta property="og:image" content="https://vectofly.com/img/og-image.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="VectoFly Difficulty Levels and Scoring Explained">
+<meta name="twitter:description" content="How VectoFly scoring works and how Easy, Medium, Hard and Hell differ: multipliers, speed, spike gaps, wave size, fuel use and hazard frequency.">
+<meta name="twitter:image" content="https://vectofly.com/img/og-image.jpg">
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "VectoFly", "item": "https://vectofly.com/"}, {"@type": "ListItem", "position": 2, "name": "VectoFly Difficulty Levels and Scoring Explained", "item": "https://vectofly.com/guide-difficulty-and-scoring.html"}]}</script>
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "Article", "headline": "VectoFly Difficulty Levels and Scoring Explained", "description": "How VectoFly scoring works and how Easy, Medium, Hard and Hell differ: multipliers, speed, spike gaps, wave size, fuel use and hazard frequency.", "datePublished": "2026-11-11", "dateModified": "2026-11-11", "mainEntityOfPage": "https://vectofly.com/guide-difficulty-and-scoring.html", "author": {"@type": "Organization", "name": "VectoFly team", "url": "https://vectofly.com/"}, "publisher": {"@type": "Organization", "name": "VectoFly", "url": "https://vectofly.com/", "logo": {"@type": "ImageObject", "url": "https://vectofly.com/img/icon-512.png"}}, "image": "https://vectofly.com/img/og-image.jpg"}</script>
+<!-- Google tag (gtag.js) -->
+<script>try{if(localStorage.getItem('vf_ga_off')==='1')window['ga-disable-G-LXSLC7ZVNW']=true;}catch(e){}</script>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-LXSLC7ZVNW"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-LXSLC7ZVNW');
+</script>
+<style>
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{padding-bottom:var(--vfn,0px);margin:0;font:17px/1.65 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;color:#2b2320;background:linear-gradient(#e4e0ba,#f7d9aa) fixed;min-height:100vh}
+.wrap{max-width:820px;margin:0 auto;padding:22px 18px 60px}
+header.site{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px 18px;padding-bottom:14px;border-bottom:1px solid rgba(89,51,46,.18);margin-bottom:6px}
+header.site a.brand{font:700 26px Georgia,'Playfair Display',serif;color:#f25346;text-decoration:none;letter-spacing:.5px}
+header.site nav{display:flex;flex-wrap:wrap;gap:2px 14px;font-size:15px}
+header.site nav a{color:#59332e;text-decoration:none;padding:4px 0}
+header.site nav a:hover,header.site nav a[aria-current]{color:#b4372b;text-decoration:underline}
+h1{font-family:'Playfair Display',Georgia,serif;font-size:clamp(1.9em,6vw,2.5em);line-height:1.15;margin:.7em 0 .3em;color:#59332e}
+h2{color:#59332e;margin:1.7em 0 .4em;font-size:1.3em;line-height:1.3}
+h3{color:#59332e;margin:1.2em 0 .2em;font-size:1.05em}
+p,li{overflow-wrap:anywhere}
+a{color:#b4372b}
+.play{display:inline-block;margin:14px 10px 6px 0;padding:13px 30px;background:#f25346;color:#fff;border-radius:10px;text-decoration:none;font-weight:700;box-shadow:0 3px 0 #b4372b}
+.play.alt{background:#68c3c0;box-shadow:0 3px 0 #3f8f8c}
+.card{background:rgba(255,255,255,.6);border-radius:12px;padding:14px 18px;margin:16px 0}
+.note{font-size:14px;opacity:.8}
+table{border-collapse:collapse;width:100%;margin:12px 0;font-size:15px}
+th,td{border:1px solid rgba(89,51,46,.25);padding:7px 10px;text-align:left;vertical-align:top}
+th{background:rgba(255,255,255,.55)}
+.scroll{overflow-x:auto}
+footer.site{margin-top:46px;padding-top:16px;border-top:1px solid rgba(89,51,46,.18);font-size:14px;line-height:2;opacity:.9}
+footer.site a{margin-right:12px;white-space:nowrap}
+@media (max-width:520px){body{font-size:16px}.wrap{padding:16px 14px 50px}header.site nav{font-size:14px}.play{display:block;text-align:center;margin-right:0}}
+.toc{margin:14px 0}.toc li{margin:2px 0}.tag{display:inline-block;font-size:12px;padding:1px 8px;border-radius:99px;background:#68c3c0;color:#fff;margin-left:6px;vertical-align:middle}
+.meta{font-size:14px;opacity:.75}.g{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));margin:14px 0}.g .card{margin:0}.g .card h3{margin-top:0}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="site"><a class="brand" href="./">VectoFly</a><nav aria-label="Main"><a href="index.html">Play</a><a href="how-to-play.html">How to play</a><a href="planes.html">Planes</a><a href="maps.html">Maps</a><a href="guides.html">Guides</a><a href="leaderboard.html">Leaderboard</a><a href="about.html">About</a><a href="updates.html">Updates</a><a href="contact.html">Contact</a></nav></header>
+
+<h1>Difficulty levels and scoring explained</h1>
+<p class="meta">By the VectoFly team &middot; Updated <time datetime="2026-11-11">11 November 2026</time></p>
+<p>Every VectoFly flight is scored with one formula, and four difficulty levels change how hard the flight is and how much the score is worth. Understanding both helps you choose a level that is fun now and still lets you climb the world leaderboard later.</p>
+<h2>The score formula</h2>
+<p><b>Score = (distance flown + 5 &times; pills collected) &times; difficulty multiplier</b></p>
+<p>Distance keeps growing as long as you stay alive, so survival is the biggest part of any score. Each blue pill adds 5 points on top, and also repairs damage. The multiplier then scales the total: Easy x1, Medium x1.25, Hard x1.5, Hell x2. There is no score shown while you fly; your result, your rank and the top 50 appear in the menu.</p>
+<h2>What changes between levels</h2>
+<div class="scroll"><table>
+<tr><th></th><th>Easy</th><th>Medium</th><th>Hard</th><th>Hell</th></tr>
+<tr><td><b>Score and coin multiplier</b></td><td>x1</td><td>x1.25</td><td>x1.5</td><td>x2</td></tr>
+<tr><td><b>Starting speed</b></td><td>Slowest</td><td>A bit faster</td><td>Fast</td><td>Very fast</td></tr>
+<tr><td><b>Spikes per wave (at level 1)</b></td><td>1</td><td>1</td><td>2</td><td>3</td></tr>
+<tr><td><b>Gap in a wall</b></td><td>Widest</td><td>Wide</td><td>Narrower</td><td>Narrowest</td></tr>
+<tr><td><b>Fuel use</b></td><td>Lowest</td><td>Low</td><td>Higher</td><td>Highest</td></tr>
+<tr><td><b>Damage from a hit</b></td><td>Gentle</td><td>Moderate</td><td>Heavy</td><td>Very heavy</td></tr>
+<tr><td><b>Map hazards</b></td><td>Less often</td><td>Less often</td><td>Normal pace</td><td>Most often</td></tr>
+</table></div>
+<p>As you climb through the levels, speed rises and the gaps in walls shrink a little, up to a limit set by each difficulty. This makes long runs on any difficulty harder than short ones.</p>
+<h2>Which level should you play?</h2>
+<h3>Easy: learning and relaxing</h3>
+<p>The slower start and gentle damage give you time to learn how waves, homing spikes and pills work. Easy is also the right choice if you play on a small phone or are teaching a child or a friend.</p>
+<h3>Medium: the comfortable middle</h3>
+<p>A little faster, with a 25% bonus on score and coins. Most players spend their first weeks here.</p>
+<h3>Hard: the default for serious scores</h3>
+<p>Hard is the level the game starts you on. Waves are bigger, homing spikes appear more often and fuel drains faster. The reward is a x1.5 multiplier, which makes it the best balance of risk and reward for coin farming.</p>
+<h3>Hell: for the leaderboard</h3>
+<p>Very fast, heavy damage, three-spike waves and frequent hazards. A good Hell run is worth double an Easy run with the same distance and pills, so the top of the leaderboard is usually full of Hell and Hard flights.</p>
+<h2>Is the leaderboard fair across levels?</h2>
+<p>All difficulties share one world leaderboard, and it keeps each pilot&rsquo;s single best score. Because harder levels multiply the score, an Easy run needs twice the distance of a Hell run to reach the same number. In practice you rise by moving up the levels as you improve. Your pilot name is generated randomly, so rankings are about scores, not about people.</p>
+<h2>Choosing quickly</h2>
+<ul>
+<li>Score under 500 and crashing early: stay on Easy.</li>
+<li>Reaching level 5 regularly: try Medium.</li>
+<li>Comfortable with homing spikes and hazards: move to Hard.</li>
+<li>Chasing a record and happy to lose many runs: play Hell with an armor plane.</li>
+</ul>
+<p>For the coin side of the same multiplier, see <a href="guide-coins-and-unlocks.html">coins and unlocks</a>.</p>
+<h2>Keep reading</h2><ul><li><a href="guide-controls-and-performance.html">Controls and smooth performance</a></li><li><a href="guide-high-score-strategy.html">Strategy for a top leaderboard score</a></li><li><a href="behind-the-game.html">Behind the game: how VectoFly is built</a></li></ul>
+<p><a class="play" href="./">Play VectoFly free</a><a class="play alt" href="guides.html">All guides</a></p>
+<footer class="site">
+<div><a href="index.html">Play</a> <a href="how-to-play.html">How to play</a> <a href="planes.html">Planes</a> <a href="maps.html">Maps</a> <a href="guides.html">Guides</a> <a href="faq.html">FAQ</a> <a href="leaderboard.html">Leaderboard</a> <a href="about.html">About</a> <a href="updates.html">Updates</a> <a href="contact.html">Contact</a> <a href="privacy.html">Privacy</a> <a href="terms.html">Terms</a> <a href="cookie-policy.html">Cookies</a> <a href="disclaimer.html">Disclaimer</a> <a href="dmca.html">DMCA</a></div>
+<div>&copy; 2026 VectoFly &middot; <a href="https://vectofly.com/">vectofly.com</a> &middot; <a href="mailto:contact@vectofly.com">contact@vectofly.com</a> &middot; <a href="mailto:contact@vectofly.com?subject=VectoFly%20bug%20report%20or%20feedback" data-feedback>Report a bug / send feedback</a></div>
+</footer>
+</div>
+<script src="js/site.js?v=20" defer></script>
+</body>
+</html>
