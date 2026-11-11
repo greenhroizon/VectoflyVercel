@@ -1,4 +1,4 @@
-// VectoFly ads: Adsterra BANNERS + Monetag PUSH NOTIFICATION. No pop-unders, no click redirects, no overlays.
+// VectoFly ads: Adsterra BANNERS only. No pop-unders, no redirects, no overlays.
 //
 //  GAME PAGE   big screen: 160px ad rails left and right of the game (160x600, or 160x300 on shorter screens)
 //              other screens: a small strip under the game AND one above it (468x60, or 320x50 on phones; the top one needs 500px+ of height)
@@ -7,7 +7,6 @@
 //              everything renews only on the game-over screen of every 2nd finished run (never on a timer)
 //  INFO PAGES  top 728x90 (mobile 320x50), middle 300x250, bottom 468x60 (mobile 300x250)
 //              wide screens (1200px+): 160x600 and 160x300 side rails beside the text
-//  PUSH        game: asked once, a moment after the first finished run. Info pages: after 12 s. Re-asked at most every 12 h
 //
 //  - banners load only when their box is about to scroll into view (better viewability, fewer wasted requests)
 //  - an empty (no-fill) box collapses by itself, so there are no blank holes
@@ -26,14 +25,12 @@
     b728x90:  '1a8bb043a682ddf78c9ab09554d058e5',
     b160x300: 'd62454dfdf00cb6143a56ae4156bb35d'
   };
-  var PUSH = { src: 'https://5gvci.com/act/files/tag.min.js?z=12233420', gapMs: 12 * 3600e3 };   // Monetag push zone
-  var T = { overDelayMs: 1200, pushAfterOverMs: 2600, infoPushMs: 12000 };
-  var PUSH_AFTER_RUNS = 1, MENU_EVERY_N_RUNS = 2, MENU_MIN_GAP_MS = 90000;
+  var T = { overDelayMs: 1200 };
+  var MENU_EVERY_N_RUNS = 2, MENU_MIN_GAP_MS = 90000;
   var RAILS_MIN_WIDTH = 1200;
 
   if (!ENABLED) return;
   function lget(k){ try { return localStorage.getItem(k); } catch (e) { return null; } }
-  function lset(k, v){ try { localStorage.setItem(k, v); } catch (e) {} }
   if (lget('vf_ads_off') === '1') return;
 
   var isGame = !!document.getElementById('panel');
@@ -73,18 +70,6 @@
     io.observe(box);
   }
 
-  // ---------- push notification (asked rarely, never while flying) ----------
-  var pushed = false;
-  function askPush(){
-    if (pushed) return;
-    if (window.Notification && Notification.permission === 'denied') return;
-    var last = +lget('vf_ad_push') || 0;
-    if (Date.now() - last < PUSH.gapMs) return;
-    pushed = true; lset('vf_ad_push', String(Date.now()));
-    var s = document.createElement('script'); s.async = true; s.src = PUSH.src; s.setAttribute('data-cfasync', 'false');
-    (document.body || document.documentElement).appendChild(s);
-  }
-
   // ---------- information pages ----------
   function placement(name){
     var w = wide();
@@ -118,14 +103,12 @@
       })(boxes[i]);
     }
     setTimeout(rails, 600);
-    setTimeout(askPush, T.infoPushMs);
   }
 
   // ---------- the game page ----------
   // The game area is shrunk (CSS variables on #gameHolder) to leave room, so ads never sit on top of the game:
   //   big screen  (1100px+ wide, 420px+ tall): a 160px rail on each side, 160x600 if the screen is 700px+ tall, else 160x300
-  //   other screens: a small strip under the game, 468x60 (560px+ wide) or 320x50
-  // They stay on screen while flying; they renew only on the game-over screen of every 2nd run (never on a timer).
+  //   other screens: a small strip under the game, plus one above it on 500px+ tall screens: 468x60 (560px+ wide) or 320x50
   function gameMode(){
     var w = window.innerWidth || 0, h = window.innerHeight || 0;
     if (w >= 1100 && h >= 420) return h >= 700 ? { m: 'rails', k: 'r600', w: 160, h: 600, key: B.b160x600 } : { m: 'rails', k: 'r300', w: 160, h: 300, key: B.b160x300 };
@@ -182,7 +165,7 @@
       var hh = g.h + 20;
       if (!gl.bar) gl.bar = mk('vf-gb');
       gl.bar.style.height = 'calc(' + hh + 'px + env(safe-area-inset-bottom,0px))';
-      gl.sz.b = hh; 
+      gl.sz.b = hh;
       if (g.top){
         if (!gl.top) gl.top = mk('vf-gt');
         gl.top.style.height = 'calc(' + hh + 'px + env(safe-area-inset-top,0px))';
@@ -195,7 +178,7 @@
   }
 
   function startGame(){
-    var box1 = null, box2 = null, boxP = null, finished = 0, overs = 0, flew = true, shown = false, last = 0, pending = false, rz = 0;
+    var box1 = null, boxP = null, overs = 0, flew = true, shown = false, last = 0, pending = false, rz = 0;
     // game ads (rails / strips) appear shortly after the game is up, and follow the window size
     setTimeout(function(){ glApply(false); }, 1800);
     window.addEventListener('resize', function(){ clearTimeout(rz); rz = setTimeout(function(){ if (gl.cur) glApply(false); }, 400); });
@@ -207,14 +190,12 @@
     }
     window.VFAds = {
       show: function(mode){
-        box1 = box1 || document.getElementById('adMenu'); box2 = box2 || document.getElementById('adMenu2'); boxP = boxP || document.getElementById('adPlay');
-        if (box2) box2.hidden = true;                    // the rails / strips replace the second menu box
+        box1 = box1 || document.getElementById('adMenu'); boxP = boxP || document.getElementById('adPlay');
         var fresh = flew; flew = false;                 // count a finished run once, not on every redraw of the screen
         var renew = false;
         if (mode === 'over' && fresh){
-          finished++; overs++;
-          if (finished >= PUSH_AFTER_RUNS) setTimeout(askPush, T.pushAfterOverMs);
-          if (overs >= MENU_EVERY_N_RUNS && Date.now() - last >= MENU_MIN_GAP_MS){ renew = true; }
+          overs++;
+          if (overs >= MENU_EVERY_N_RUNS && Date.now() - last >= MENU_MIN_GAP_MS) renew = true;
         }
         if (renew) setTimeout(function(){ if (gl.cur && gl.cur !== 'none') glApply(true); }, T.overDelayMs + 300);
         if (boxP) boxP.hidden = false;

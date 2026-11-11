@@ -323,6 +323,7 @@ var VF = (function(){
     drawStats();
     $('optMusic').checked = S.music; $('optSfx').checked = S.sfx; $('optVib').checked = S.vib !== false;
     $('panel').className = '';
+    if (window.VFAds) VFAds.show(m);                // ads: menu and game-over screens only
   }
   var starting = false;
   function begin(){
@@ -337,6 +338,7 @@ var VF = (function(){
     var launched = false;
     var launch = function(){
       if (launched) return; launched = true; starting = false;
+      if (window.VFAds) VFAds.hide();                 // menu boxes go away while flying
       $('panel').className = 'hide'; runCoins = 0; runBonus = 0; combo = 0; nearMisses = 0; newBest = false; legit = 0; playMs = 0; wallMs = 0; lastTickAt = 0; cheated = false;
       document.body.classList.add('playing'); G.sub = '';
       if (F.touching && !S.hint){ S.hint = true; save(); setTimeout(function(){ toast('Slide a thumb anywhere to steer', '#fff6e2'); }, 600); }

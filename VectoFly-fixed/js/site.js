@@ -25,7 +25,7 @@
 
   // ---- analytics notice + opt-out (Google's documented ga-disable switch) ----
   function optOut(off){
-    set('vf_ga_off', off ? '1' : '0'); window['ga-disable-' + GA_ID] = !!off;
+    set('vf_ga_off', off ? '1' : '0'); set('vf_ads_off', off ? '1' : '0'); window['ga-disable-' + GA_ID] = !!off;
     var s = document.querySelectorAll('[data-ga-status]');
     for (var i = 0; i < s.length; i++) s[i].textContent = off ? 'Analytics is OFF for this browser.' : 'Analytics is ON for this browser.';
   }
@@ -35,7 +35,7 @@
   function banner(){
     if (get('vf_notice') || document.getElementById('vfNotice')) return;
     var d = document.createElement('div'); d.id = 'vfNotice'; d.setAttribute('role', 'dialog'); d.setAttribute('aria-live', 'polite'); d.setAttribute('aria-label', 'Cookies and analytics');
-    d.innerHTML = '<div class="vfn-t"><b>Cookies &amp; analytics</b><span>We use Google Analytics to count visits so we can keep improving the game. VectoFly shows no ads. Opt out turns analytics off. <a href="cookie-policy.html">Learn more</a></span></div><div class="vfn-b"><button type="button" data-a="ok">Accept</button><button type="button" data-a="off" class="ghost">Opt out</button></div>';
+    d.innerHTML = '<div class="vfn-t"><b>Cookies &amp; analytics</b><span>We use Google Analytics to count visits and banner ads from our partner Adsterra to pay for hosting. Opt out turns off analytics and ads (it saves a setting in this browser). <a href="cookie-policy.html">Learn more</a></span></div><div class="vfn-b"><button type="button" data-a="ok">Accept</button><button type="button" data-a="off" class="ghost">Opt out</button></div>';
     var st = document.createElement('style');
     st.textContent = '#vfNotice{position:fixed;z-index:99999;left:max(12px,env(safe-area-inset-left));bottom:max(12px,env(safe-area-inset-bottom));width:min(430px,calc(100vw - 24px));box-sizing:border-box;display:flex;flex-direction:column;gap:10px;padding:14px 16px;border-radius:14px;background:#fffaf0;color:#3a2a22;border:2px solid #d1b790;box-shadow:0 8px 30px rgba(35,25,15,.35);font:14px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;text-align:left}'
       + '#vfNotice .vfn-t{display:flex;flex-direction:column;gap:3px}#vfNotice b{font-size:15px;color:#59332e}#vfNotice span{opacity:.9}#vfNotice a{color:#b4372b;font-weight:600}'
@@ -48,7 +48,7 @@
     measure(); setTimeout(measure, 300); window.addEventListener('resize', measure);
     d.addEventListener('click', function(e){
       var a = e.target && e.target.getAttribute && e.target.getAttribute('data-a'); if (!a) return;
-      if (a === 'off') optOut(true); set('vf_notice', '1'); d.parentNode && d.parentNode.removeChild(d); reserve(0); window.removeEventListener('resize', measure);
+      if (a === 'off'){ optOut(true); set('vf_ads_off', '1'); } set('vf_notice', '1'); d.parentNode && d.parentNode.removeChild(d); reserve(0); window.removeEventListener('resize', measure);
     });
   }
   function init(){

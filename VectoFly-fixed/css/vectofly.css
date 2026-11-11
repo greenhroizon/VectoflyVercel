@@ -318,3 +318,20 @@ body.playing,body.playing *{touch-action:none;-webkit-touch-callout:none}
 
 
 
+
+/* menu ad: below the footer links, far from the Play button, labelled, and it takes no space until an ad really loads */
+#panel #adMenu{grid-column:1/-1;margin:1em 0 0;padding-top:.8em;border-top:.14em dashed var(--tan);text-align:center}
+#panel #adMenu[hidden]{display:none}
+#panel #adMenu:not(.on){height:1px;margin:0;padding:0;border:0;overflow:hidden}
+#panel #adMenu.on{min-height:100px}
+#panel #adMenu .ad-label{display:block;font-size:.62em;letter-spacing:.2em;text-transform:uppercase;opacity:.55;margin-bottom:.4em}
+#panel .ad-body{display:flex;justify-content:center;max-width:100%;overflow:hidden}
+/* banner under the Play button: clear gap above it so Play is never tapped by mistake, labelled, takes no space until an ad loads */
+#panel #adPlay{margin:16px 0 4px;text-align:center}
+#panel #adPlay[hidden]{display:none}
+#panel #adPlay:not(.on){height:1px;margin:0;padding:0;border:0;overflow:hidden}
+#panel #adPlay .ad-label{display:block;font-size:.62em;letter-spacing:.2em;text-transform:uppercase;opacity:.55;margin-bottom:.4em}
+/* ads around the game: the game area shrinks to leave room for side rails (big screens) or strips above and under it */
+#gameHolder.game-holder{top:var(--vf-t,0px);left:var(--vf-l,0px);right:var(--vf-r,0px);bottom:var(--vf-b,0px)}
+body{background:#e8c690}
+#vfNotice{left:calc(var(--vf-l,0px) + 12px) !important;bottom:calc(var(--vf-b,0px) + max(12px,env(safe-area-inset-bottom))) !important}

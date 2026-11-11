@@ -49,8 +49,10 @@ If neither is set up (or the server cannot be reached) the game falls back to th
 - Icons: `favicon.ico`, `img/favicon-32.png`, `img/icon-192.png`, `img/icon-512.png`, `img/icon-maskable-512.png`, `img/apple-touch-icon.png` (links use `?v=2` to bypass the 1 year cache; bump it when you change them).
 - If you change the privacy or terms text, update the "Last updated" dates and `sitemap.xml` lastmod.
 
-## Ads
-The site currently shows no ads and loads no ad scripts. `ads.txt` holds only comments; after AdSense approval, paste the `google.com, pub-..., DIRECT, f08c47fec0942fa0` line there and update the privacy and cookie pages.
+## Ads (Adsterra banners)
+`js/ads.js` holds the Adsterra banner keys (300x250, 468x60, 160x600, 320x50, 728x90, 160x300). No pop-unders, no redirects. Game page: on screens 1100px+ wide and 420px+ tall, 160px rails left/right of the game (160x600, or 160x300 under 700px tall); otherwise a strip under the game and, on 500px+ tall screens, one above it (468x60 from 560px wide, else 320x50). The game area shrinks through the CSS variables `--vf-l/--vf-r/--vf-t/--vf-b` on `#gameHolder`, so ads never overlap it. The menu has a banner under the Play button (`#adPlay`) and a 300x250 box (`#adMenu`). Ads renew only on the game-over of every 2nd run. Info pages (not the legal pages) have top/mid/bottom banners + side rails on wide screens.
+- Do not refresh ads on a timer, reward clicks, or put ads next to buttons.
+- Remove ads: delete the `ads.js` script tags and the `ad-slot` divs.
 
 ## Updates page
 `updates.html` is the public changelog (newest first, one `<section class="rel">` per version with a date). When you ship a change, add a new section at the top, update the `jump` links, set `lastmod` for `updates.html` in `sitemap.xml`, and change the "Last updated" date on any legal page whose text you changed.
