@@ -1,1 +1,3 @@
-# If Monetag shows an ads.txt line for your site (Sites > vectofly.com), paste it here. If it does not, delete this file's contents.
+# Paste the exact lines your ad networks show for your site:
+#  Adsterra: Dashboard > Websites > your site > ads.txt
+#  Monetag:  Sites > vectofly.com > ads.txt (only if it shows one)

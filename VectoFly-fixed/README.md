@@ -49,11 +49,10 @@ If neither is set up (or the server cannot be reached) the game falls back to th
 - Icons: `favicon.ico`, `img/favicon-32.png`, `img/icon-192.png`, `img/icon-512.png`, `img/icon-maskable-512.png`, `img/apple-touch-icon.png` (links use `?v=2` to bypass the 1 year cache; bump it when you change them).
 - If you change the privacy or terms text, update the "Last updated" dates and `sitemap.xml` lastmod.
 
-## Ads (Monetag)
-`js/ads.js` loads four Monetag zones, each at the right moment and never while flying: OnClick pop-under (menu, fires on first click, opens behind the game, capped 20 min), In-Page Push (menu idle 6 s / after first run), Push notification (after first run; needs `sw.js` in the site root, downloaded from Monetag), Vignette (game-over of runs 3, 6, 9..., capped 10 min). Overlays added by Monetag are hidden during a run.
-- Set intervals in the Monetag dashboard too (In-Page Push: first show 10+ s, interval 3+ min; Vignette: interval 10+ min).
-- `<meta name="monetag" ...>` is in every page for verification.
-- Do not reward clicks or put ads next to buttons.
+## Ads (Adsterra banners + Monetag push)
+`js/ads.js` has the Adsterra banner keys (300x250, 468x60, 160x600, 320x50, 728x90, 160x300) and the Monetag push zone. No pop-unders, no redirects. Game page: on screens 1100px+ wide and 420px+ tall, 160px rails left/right of the game (160x600, or 160x300 under 700px tall); otherwise a strip under the game (468x60 from 560px wide, else 320x50). The game area shrinks through the CSS variables `--vf-l/--vf-r/--vf-b` on `#gameHolder`, so ads never overlap it. A 300x250 box shows inside the menu/game-over screen. Ads renew only on the game-over of every 2nd run. Info pages: top/mid/bottom banners + side rails on wide screens. Push is asked once after the first run (info pages: after 12 s), at most every 12 h.
+- Push needs `sw.js` (from the Monetag dashboard) in the site root.
+- Do not refresh ads on a timer, reward clicks, or put ads next to buttons.
 
 ## Updates page
 `updates.html` is the public changelog (newest first, one `<section class="rel">` per version with a date). When you ship a change, add a new section at the top, update the `jump` links, set `lastmod` for `updates.html` in `sitemap.xml`, and change the "Last updated" date on any legal page whose text you changed.

@@ -330,3 +330,8 @@ body.playing,body.playing *{touch-action:none;-webkit-touch-callout:none}
 #panel .ad-body{display:flex;justify-content:center;max-width:100%;overflow:hidden}
 #panel a.sp{display:inline-block;font-size:.8em;opacity:.7;margin:.3em 0;color:inherit}
 #panel a.sp[hidden]{display:none}
+
+/* ads around the game: the game area shrinks to leave room for side rails (big screens) or a strip under it */
+#gameHolder.game-holder{left:var(--vf-l,0px);right:var(--vf-r,0px);bottom:var(--vf-b,0px)}
+body{background:#e8c690}
+#vfNotice{left:calc(var(--vf-l,0px) + 12px) !important;bottom:calc(var(--vf-b,0px) + max(12px,env(safe-area-inset-bottom))) !important}
