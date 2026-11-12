@@ -314,8 +314,9 @@ body.playing,body.playing *{touch-action:none;-webkit-touch-callout:none}
 #pauseBar[hidden]{display:none}
 #pauseBar b{font-size:1.9em;letter-spacing:.2em;color:#f25346;text-shadow:.05em .05em 0 #59332e}
 #pauseBar span{font-size:.95em;opacity:.85}
-
-
-
-
-
+/* menu ad: below the footer links, far from the Play button, labelled, and it takes no space until an ad really loads */
+#panel #adMenu{grid-column:1/-1;margin:1em 0 0;padding-top:.8em;border-top:.14em dashed var(--tan);text-align:center}
+#panel #adMenu[hidden]{display:none}
+#panel #adMenu:not(.on){height:1px;margin:0;padding:0;border:0;overflow:hidden}   /* stays measurable so the page can tell when it scrolls into view */
+#panel #adMenu.on{min-height:100px}
+#panel #adMenu .ad-label{display:block;font-size:.62em;letter-spacing:.2em;text-transform:uppercase;opacity:.55;margin-bottom:.4em}

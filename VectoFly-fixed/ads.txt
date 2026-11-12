@@ -1,3 +1,1 @@
-# Intentionally empty: this site shows no ads right now.
-# After Google AdSense approves the site, paste the line AdSense gives you here:
-#   google.com, pub-XXXXXXXXXXXXXXXX, DIRECT, f08c47fec0942fa0
+google.com, pub-7644045441600017, DIRECT, f08c47fec0942fa0

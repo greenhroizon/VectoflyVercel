@@ -49,8 +49,11 @@ If neither is set up (or the server cannot be reached) the game falls back to th
 - Icons: `favicon.ico`, `img/favicon-32.png`, `img/icon-192.png`, `img/icon-512.png`, `img/icon-maskable-512.png`, `img/apple-touch-icon.png` (links use `?v=2` to bypass the 1 year cache; bump it when you change them).
 - If you change the privacy or terms text, update the "Last updated" dates and `sitemap.xml` lastmod.
 
-## Ads
-The site currently shows no ads and loads no ad scripts. `ads.txt` holds only comments; after AdSense approval, paste the `google.com, pub-..., DIRECT, f08c47fec0942fa0` line there and update the privacy and cookie pages.
+## Ads (Google AdSense)
+`js/ads.js` (publisher `ca-pub-7644045441600017`, `ENABLED = true`) loads AdSense on the information pages and guides. A box only shows an ad once you paste its ad unit id into `SLOTS` (AdSense > Ads > By ad unit > Display ads > Responsive; create four units: top, mid, bottom, menu). Until then the boxes stay empty and collapse (no gaps). The game page loads nothing until `SLOTS.menu` is set; no ads while flying. `<meta name="google-adsense-account">` is in every page and `ads.txt` is at the site root.
+- Pages with ads: about, how-to-play, updates, planes, maps, faq, behind-the-game and the six guides. None on the guides hub, leaderboard, contact, legal pages or 404 (little publisher content).
+- In AdSense, turn off Auto ads "Anchor" and "Vignette" formats and exclude `https://vectofly.com/`, otherwise Google could place overlays over the game. Publish the consent message under Privacy & messaging for EU/UK/Swiss visitors.
+- Do not refresh ads on a timer, ask people to click, or put ads next to buttons.
 
 ## Updates page
 `updates.html` is the public changelog (newest first, one `<section class="rel">` per version with a date). When you ship a change, add a new section at the top, update the `jump` links, set `lastmod` for `updates.html` in `sitemap.xml`, and change the "Last updated" date on any legal page whose text you changed.

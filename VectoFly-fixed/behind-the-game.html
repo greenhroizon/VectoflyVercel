@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="google-adsense-account" content="ca-pub-7644045441600017">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Behind VectoFly: Technology, Fair Obstacles and an Honest Leaderboard</title>
 <meta name="description" content="How VectoFly is built: 3D graphics in the browser with Three.js, the obstacle director that keeps every wave fair, random pilot names and the anti-cheat leaderboard.">
@@ -62,6 +63,7 @@ footer.site a{margin-right:12px;white-space:nowrap}
 @media (max-width:520px){body{font-size:16px}.wrap{padding:16px 14px 50px}header.site nav{font-size:14px}.play{display:block;text-align:center;margin-right:0}}
 .toc{margin:14px 0}.toc li{margin:2px 0}.tag{display:inline-block;font-size:12px;padding:1px 8px;border-radius:99px;background:#68c3c0;color:#fff;margin-left:6px;vertical-align:middle}
 .meta{font-size:14px;opacity:.75}.g{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));margin:14px 0}.g .card{margin:0}.g .card h3{margin-top:0}
+.ad-slot{margin:26px 0 0}.ad-slot.on{min-height:90px;text-align:center}.ad-slot:not(.on){margin:0;height:1px;overflow:hidden}.ad-label{display:block;font-size:11px;letter-spacing:1px;text-transform:uppercase;opacity:.5;margin-bottom:4px}
 </style>
 </head>
 <body>
@@ -71,6 +73,7 @@ footer.site a{margin-right:12px;white-space:nowrap}
 <h1>Behind the game: how VectoFly is built</h1>
 <p class="meta">By the VectoFly team &middot; Updated <time datetime="2026-11-11">11 November 2026</time></p>
 <p>VectoFly looks like a simple arcade game, but a lot of work goes on underneath to make it fair, light enough for a phone and safe for everyone. This page explains the main ideas in plain language, for players who are curious and for anyone who wants to build a similar browser game.</p>
+<div class="ad-slot" data-ad-slot="top" aria-label="Advertisement"></div>
 <h2>Where it comes from</h2>
 <p>VectoFly&rsquo;s original concept and low-poly look come from <i>The Aviator</i> by Karim Maaloul, published on Codrops under the MIT licence. VectoFly extends that idea with many more planes, maps, hazards, four difficulties, touch controls and a global leaderboard.</p>
 <h2>3D graphics in a web page</h2>
@@ -93,6 +96,7 @@ footer.site a{margin-right:12px;white-space:nowrap}
 <li>It adapts: difficulty scales with how you are doing, and it punishes staying in one place by sending a homing spike.</li>
 </ul>
 <p>A second director schedules map hazards. It picks from the threats of your current map, never shows two big threats at once, gives every one a visible warning, and shortens the pauses as your level goes up.</p>
+<div class="ad-slot" data-ad-slot="mid" aria-label="Advertisement"></div>
 <h2>A leaderboard you can trust</h2>
 <p>Online leaderboards attract cheaters, so VectoFly takes several steps:</p>
 <ul>
@@ -107,12 +111,14 @@ footer.site a{margin-right:12px;white-space:nowrap}
 <h2>What is next</h2>
 <p>New maps, planes and hazards are added over time, and the <a href="updates.html">updates page</a> lists every change. Many features, such as sliding anywhere on the screen to steer and the free starter planes, came straight from player feedback. If you have an idea, write to <a href="mailto:contact@vectofly.com">contact@vectofly.com</a>.</p>
 <h2>Keep reading</h2><ul><li><a href="guide-beginner-tips.html">Beginner tips: 12 ways to fly farther</a></li><li><a href="guide-hazards.html">Every hazard and how to dodge it</a></li><li><a href="guide-coins-and-unlocks.html">Coins explained and what to unlock first</a></li></ul>
+<div class="ad-slot" data-ad-slot="bottom" aria-label="Advertisement"></div>
 <p><a class="play" href="./">Play VectoFly free</a><a class="play alt" href="guides.html">All guides</a></p>
 <footer class="site">
 <div><a href="index.html">Play</a> <a href="how-to-play.html">How to play</a> <a href="planes.html">Planes</a> <a href="maps.html">Maps</a> <a href="guides.html">Guides</a> <a href="faq.html">FAQ</a> <a href="leaderboard.html">Leaderboard</a> <a href="about.html">About</a> <a href="updates.html">Updates</a> <a href="contact.html">Contact</a> <a href="privacy.html">Privacy</a> <a href="terms.html">Terms</a> <a href="cookie-policy.html">Cookies</a> <a href="disclaimer.html">Disclaimer</a> <a href="dmca.html">DMCA</a></div>
 <div>&copy; 2026 VectoFly &middot; <a href="https://vectofly.com/">vectofly.com</a> &middot; <a href="mailto:contact@vectofly.com">contact@vectofly.com</a> &middot; <a href="mailto:contact@vectofly.com?subject=VectoFly%20bug%20report%20or%20feedback" data-feedback>Report a bug / send feedback</a></div>
 </footer>
 </div>
-<script src="js/site.js?v=22" defer></script>
+<script src="js/site.js?v=23" defer></script>
+<script src="js/ads.js?v=1" defer></script>
 </body>
 </html>
