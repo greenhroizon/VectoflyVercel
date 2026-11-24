@@ -1,7 +1,3 @@
-# robots.txt for VectoFly
 User-agent: *
 Allow: /
-Disallow: /server/
-Disallow: /api/
-
 Sitemap: https://vectofly.com/sitemap.xml
